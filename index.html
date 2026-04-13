@@ -1,1 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Монитор статусов</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; margin-bottom: 20px; }
+        .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        button { padding: 10px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-green { background: #28a745; }
+        .btn-yellow { background: #ffc107; color: black; }
+        .btn-blue { background: #17a2b8; }
+        .btn-grey { background: #6c757d; }
+        .user-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; margin-right: 15px; }
+    </style>
+</head>
+<body>
 
+    <div class="card">
+        <h2>Мой профиль</h2>
+        <div id="myInfo">Вы зашли как: загрузка...</div>
+        <div class="buttons">
+            <button class="btn-green" onclick="changeStatus('📚 Учусь', '#28a745')">📚 Учусь</button>
+            <button class="btn-yellow" onclick="changeStatus('☕ Кофе', '#ffc107')">☕ Кофе</button>
+            <button class="btn-blue" onclick="changeStatus('🎮 В игре', '#17a2b8')">🎮 В игре</button>
+            <button class="btn-grey" onclick="changeStatus('🏠 Дома', '#6c757d')">🏠 Дома</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Монитор группы</h2>
+        <div id="groupList"></div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+        // ДАННЫЕ ВЗЯТЫ ИЗ ВАШИХ СКРИНШОТОВ
+        const URL = 'https://rgyuyvoiovrwnrjgrnbm.supabase.co'; 
+        const KEY = 'sb_publishable_HTaSDRoIFtfeisZ_08lS0g_bfp0Z_G8X_NfP0_Xf'; // Ваш Publishable key
+        const MY_ID = 'f7dc9942-ac14-4964-94dd-ed22c45ff5fa'; // Ваш ID для Pavel 
+
+        const supabase = createClient(URL, KEY);
+
+        window.changeStatus = async (text, color) => {
+            const { error } = await supabase
+                .from('profiles')
+                .update({ status: text, color: color })
+                .eq('id', MY_ID);
+
+            if (error) {
+                alert("Ошибка! Проверьте RLS политики в Supabase.");
+                console.error(error);
+            } else {
+                fetchGroup();
+            }
+        };
+
+        async function fetchGroup() {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .order('username', { ascending: true });
+
+            if (error) return console.error(error);
+
+            const list = document.getElementById('groupList');
+            list.innerHTML = data.map(user => `
+                <div class="user-item">
+                    <div class="status-dot" style="background: ${user.color || '#ccc'}"></div>
+                    <div style="flex-grow: 1;">
+                        <strong>${user.username}</strong><br>
+                        <small style="color: #666;">${user.status || 'Статус не задан'}</small>
+                    </div>
+                </div>
+            `).join('');
+
+            const me = data.find(u => u.id === MY_ID);
+            if (me) document.getElementById('myInfo').innerText = `Вы зашли как: ${me.username}`;
+        }
+
+        fetchGroup();
+        setInterval(fetchGroup, 5000);
+    </script>
+</body>
+</html>
