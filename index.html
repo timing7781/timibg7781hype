@@ -4,57 +4,102 @@
     <meta charset="UTF-8">
     <title>Монитор статусов</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; margin-bottom: 20px; }
-        .buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        button { padding: 10px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; }
-        .btn-green { background: #28a745; }
-        .btn-yellow { background: #ffc107; color: black; }
-        .btn-blue { background: #17a2b8; }
-        .btn-grey { background: #6c757d; }
-        .user-item { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .status-dot { width: 12px; height: 12px; border-radius: 50%; margin-right: 15px; }
+        :root {
+            --primary-color: #007bff;
+            --bg-color: #f4f7f9;
+        }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg-color); display: flex; flex-direction: column; align-items: center; padding: 20px; color: #333; }
+        
+        .card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); width: 100%; max-width: 550px; margin-bottom: 20px; }
+        h2 { margin-top: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+        
+        /* Верхняя панель инфо */
+        .status-info-box { background: #eef6ff; border-radius: 12px; padding: 16px; margin-bottom: 20px; border-left: 4px solid var(--primary-color); }
+        .info-row { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; margin: 4px 0; }
+        .info-row b { color: var(--primary-color); }
+
+        /* Сетка выбора статуса */
+        .status-grid { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0 25px 0; }
+        .status-option { 
+            padding: 8px 16px; border: 1px solid #dee2e6; border-radius: 20px; background: white;
+            cursor: pointer; font-size: 0.9rem; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px;
+        }
+        .status-option:hover { border-color: var(--primary-color); background: #f8faff; }
+        .status-option.active { background: var(--primary-color); color: white; border-color: var(--primary-color); box-shadow: 0 4px 10px rgba(0,123,255,0.2); }
+
+        /* Кнопка сохранения */
+        .btn-save { 
+            width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; 
+            border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.3s;
+        }
+        .btn-save:hover { background: #0056b3; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+
+        /* Монитор группы */
+        .user-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f3f5; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; margin-right: 15px; }
+        .username { font-weight: 600; flex-grow: 1; }
+        .status-tag { font-size: 0.75rem; color: #6c757d; background: #f8f9fa; padding: 4px 10px; border-radius: 10px; border: 1px solid #eee; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h2>Мой профиль</h2>
-        <div id="myInfo">Вы зашли как: загрузка...</div>
-        <div class="buttons">
-            <button class="btn-green" onclick="changeStatus('📚 Учусь', '#28a745')">📚 Учусь</button>
-            <button class="btn-yellow" onclick="changeStatus('☕ Кофе', '#ffc107')">☕ Кофе</button>
-            <button class="btn-blue" onclick="changeStatus('🎮 В игре', '#17a2b8')">🎮 В игре</button>
-            <button class="btn-grey" onclick="changeStatus('🏠 Дома', '#6c757d')">🏠 Дома</button>
+        <h2>👤 Мой профиль</h2>
+        
+        <div class="status-info-box">
+            <div class="info-row">👨‍💻 Вы зашли как: <b id="displayUsername">загрузка...</b></div>
+            <div class="info-row">📌 Текущий статус: <span id="currentStatusText">...</span></div>
         </div>
+
+        <p style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">Выберите статус:</p>
+        <div class="status-grid" id="statusPicker">
+            <div class="status-option" onclick="prepStatus(this, '🟢 Онлайн', '#28a745')">🟢 Онлайн</div>
+            <div class="status-option" onclick="prepStatus(this, '☕ Отошёл', '#ffc107')">☕ Отошёл</div>
+            <div class="status-option" onclick="prepStatus(this, '🔴 Не беспокоить', '#dc3545')">🔴 Не беспокоить</div>
+            <div class="status-option" onclick="prepStatus(this, '🗓️ Встреча', '#007bff')">🗓️ Встреча</div>
+            <div class="status-option" onclick="prepStatus(this, '🍜 Обед', '#6f42c1')">🍜 Обед</div>
+        </div>
+
+        <button class="btn-save" onclick="applyStatus()">Сохранить статус</button>
     </div>
 
     <div class="card">
-        <h2>Монитор группы</h2>
+        <h2>👥 Монитор группы</h2>
         <div id="groupList"></div>
     </div>
 
     <script type="module">
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-        // ДАННЫЕ ВЗЯТЫ ИЗ ВАШИХ СКРИНШОТОВ
         const URL = 'https://rgyuyvoiovrwnrjgrnbm.supabase.co'; 
-        const KEY = 'sb_publishable_HTaSDRoIFtfeisZ_08lS0g_bFp0Zlju'; // Ваш Publishable key
-        const MY_ID = 'f7dc9942-ac14-4964-94dd-ed22c45ff5fa';  
+        const KEY = 'sb_publishable_HTaSDRoIFtfeisZ_08lS0g_bFp0Zlju'; 
+        const MY_ID = 'f7dc9942-ac14-4964-94dd-ed22c45ff5fa'; 
 
         const supabase = createClient(URL, KEY);
+        
+        // Временная переменная для хранения выбора
+        let tempStatus = { text: '', color: '' };
 
-        window.changeStatus = async (text, color) => {
+        // 1. Логика выбора статуса (без отправки в базу)
+        window.prepStatus = (element, text, color) => {
+            document.querySelectorAll('.status-option').forEach(opt => opt.classList.remove('active'));
+            element.classList.add('active');
+            tempStatus = { text, color };
+        };
+
+        // 2. Логика сохранения (отправка в базу)
+        window.applyStatus = async () => {
+            if (!tempStatus.text) return alert("Сначала выберите статус из списка!");
+
             const { error } = await supabase
                 .from('profiles')
-                .update({ status: text, color: color })
+                .update({ status: tempStatus.text, color: tempStatus.color })
                 .eq('id', MY_ID);
 
             if (error) {
-                alert("Ошибка! Проверьте RLS политики в Supabase.");
-                console.error(error);
+                alert("Ошибка! Проверьте RLS.");
             } else {
-                alert("Данные успешно отправлены!");
+                alert("Статус обновлен!");
                 fetchGroup();
             }
         };
@@ -71,15 +116,16 @@
             list.innerHTML = data.map(user => `
                 <div class="user-item">
                     <div class="status-dot" style="background: ${user.color || '#ccc'}"></div>
-                    <div style="flex-grow: 1;">
-                        <strong>${user.username}</strong><br>
-                        <small style="color: #666;">${user.status || 'Статус не задан'}</small>
-                    </div>
+                    <div class="username">${user.username}</div>
+                    <div class="status-tag">${user.status || 'Вне сети'}</div>
                 </div>
             `).join('');
 
             const me = data.find(u => u.id === MY_ID);
-            if (me) document.getElementById('myInfo').innerText = `Вы зашли как: ${me.username}`;
+            if (me) {
+                document.getElementById('displayUsername').innerText = me.username;
+                document.getElementById('currentStatusText').innerText = me.status || 'не задан';
+            }
         }
 
         fetchGroup();
