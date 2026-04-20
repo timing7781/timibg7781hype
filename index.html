@@ -84,18 +84,26 @@
         const { data } = await supabase.auth.getUser();
         if (data?.user) {
             currentUser = data.user;
-            // Скрываем кнопку входа, показываем инфо
-            document.querySelector('.status-info-box').innerHTML = `
-                <div class="info-row">👨‍💻 Вы: <b>${currentUser.user_metadata.full_name || currentUser.email}</b></div>
-                <div class="info-row">📌 Статус: <span id="currentStatusText">загрузка...</span></div>
-                <button onclick="supabase.auth.signOut().then(() => location.reload())" style="background:none;border:none;color:grey;cursor:pointer;font-size:10px;padding:0">Выйти</button>
+            
+            infoBox.innerHTML = `
+                <div class="info-row">👨‍💻 Вы зашли как: <b>${currentUser.user_metadata.full_name || currentUser.email}</b></div>
+                <div class="info-row">📌 Текущий статус: <span id="currentStatusText">загрузка...</span></div>
+                <button id="logoutBtn" style="background:none; border:none; color:#dc3545; cursor:pointer; font-size:12px; padding:5px 0; text-decoration:underline;">
+                    Выйти из аккаунта
+                </button>
             `;
             
-            // Авто-создание профиля в таблице, если его нет
+            // ВОТ ЭТОТ БЛОК НУЖНО ДОБАВИТЬ СТРОГО ПОД innerHTML:
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                await supabase.auth.signOut();
+                // Перенаправляем на чистую ссылку без токенов
+                window.location.href = window.location.origin + window.location.pathname;
+            });
+
             await supabase.from('profiles').upsert({ 
                 id: currentUser.id, 
                 username: currentUser.user_metadata.full_name || currentUser.email 
-            });
+            }, { onConflict: 'id' });
 
             fetchGroup();
         } else {
