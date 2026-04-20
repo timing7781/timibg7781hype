@@ -69,67 +69,91 @@
     </div>
 
     <script type="module">
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-        const URL = 'https://rgyuyvoiovrwnrjgrnbm.supabase.co'; 
-        const KEY = 'sb_publishable_HTaSDRoIFtfeisZ_08lS0g_bFp0Zlju'; 
-        const MY_ID = 'f7dc9942-ac14-4964-94dd-ed22c45ff5fa'; 
+    const URL = 'https://rgyuyvoiovrwnrjgrnbm.supabase.co'; 
+    const KEY = 'sb_publishable_HTaSDRoIFtfeisZ_08lS0g_bFp0Zlju'; 
 
-        const supabase = createClient(URL, KEY);
-        
-        // Временная переменная для хранения выбора
-        let tempStatus = { text: '', color: '' };
+    const supabase = createClient(URL, KEY);
+    
+    let currentUser = null;
+    let tempStatus = { text: '', color: '' };
 
-        // 1. Логика выбора статуса (без отправки в базу)
-        window.prepStatus = (element, text, color) => {
-            document.querySelectorAll('.status-option').forEach(opt => opt.classList.remove('active'));
-            element.classList.add('active');
-            tempStatus = { text, color };
-        };
+    // --- ВСТАВКА: БЛОК АВТОРИЗАЦИИ ---
+    async function checkUser() {
+        const { data } = await supabase.auth.getUser();
+        if (data?.user) {
+            currentUser = data.user;
+            // Скрываем кнопку входа, показываем инфо
+            document.querySelector('.status-info-box').innerHTML = `
+                <div class="info-row">👨‍💻 Вы: <b>${currentUser.user_metadata.full_name || currentUser.email}</b></div>
+                <div class="info-row">📌 Статус: <span id="currentStatusText">загрузка...</span></div>
+                <button onclick="supabase.auth.signOut().then(() => location.reload())" style="background:none;border:none;color:grey;cursor:pointer;font-size:10px;padding:0">Выйти</button>
+            `;
+            
+            // Авто-создание профиля в таблице, если его нет
+            await supabase.from('profiles').upsert({ 
+                id: currentUser.id, 
+                username: currentUser.user_metadata.full_name || currentUser.email 
+            });
 
-        // 2. Логика сохранения (отправка в базу)
-        window.applyStatus = async () => {
-            if (!tempStatus.text) return alert("Сначала выберите статус из списка!");
+            fetchGroup();
+        } else {
+            // Если не вошли — рисуем кнопку
+            document.querySelector('.status-info-box').innerHTML = `
+                <button id="loginBtn" style="width:100%; padding:10px; cursor:pointer; border-radius:8px; border:1px solid #ddd; background:white; display:flex; align-items:center; justify-content:center; gap:8px;">
+                    <img src="https://www.google.com/favicon.ico" width="16"> Войти через Google
+                </button>
+            `;
+            document.getElementById('loginBtn').onclick = () => supabase.auth.signInWithOAuth({ 
+                provider: 'google',
+                options: { redirectTo: window.location.href }
+            });
+        }
+    }
+    // --------------------------------
 
-            const { error } = await supabase
-                .from('profiles')
-                .update({ status: tempStatus.text, color: tempStatus.color })
-                .eq('id', MY_ID);
+    window.prepStatus = (element, text, color) => {
+        document.querySelectorAll('.status-option').forEach(opt => opt.classList.remove('active'));
+        element.classList.add('active');
+        tempStatus = { text, color };
+    };
 
-            if (error) {
-                alert("Ошибка! Проверьте RLS.");
-            } else {
-                alert("Статус обновлен!");
-                fetchGroup();
-            }
-        };
+    window.applyStatus = async () => {
+        if (!currentUser) return alert("Сначала войдите через Google!");
+        if (!tempStatus.text) return alert("Выберите статус!");
 
-        async function fetchGroup() {
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .order('username', { ascending: true });
+        const { error } = await supabase
+            .from('profiles')
+            .update({ status: tempStatus.text, color: tempStatus.color })
+            .eq('id', currentUser.id);
 
-            if (error) return console.error(error);
+        if (error) alert("Ошибка! Проверьте RLS политики.");
+        else { alert("Статус обновлен!"); fetchGroup(); }
+    };
 
-            const list = document.getElementById('groupList');
-            list.innerHTML = data.map(user => `
-                <div class="user-item">
-                    <div class="status-dot" style="background: ${user.color || '#ccc'}"></div>
-                    <div class="username">${user.username}</div>
-                    <div class="status-tag">${user.status || 'Вне сети'}</div>
-                </div>
-            `).join('');
+    async function fetchGroup() {
+        const { data, error } = await supabase.from('profiles').select('*').order('username', { ascending: true });
+        if (error) return;
 
-            const me = data.find(u => u.id === MY_ID);
-            if (me) {
-                document.getElementById('displayUsername').innerText = me.username;
+        document.getElementById('groupList').innerHTML = data.map(user => `
+            <div class="user-item">
+                <div class="status-dot" style="background: ${user.color || '#ccc'}"></div>
+                <div class="username">${user.username}</div>
+                <div class="status-tag">${user.status || 'Вне сети'}</div>
+            </div>
+        `).join('');
+
+        if (currentUser) {
+            const me = data.find(u => u.id === currentUser.id);
+            if (me && document.getElementById('currentStatusText')) {
                 document.getElementById('currentStatusText').innerText = me.status || 'не задан';
             }
         }
+    }
 
-        fetchGroup();
-        setInterval(fetchGroup, 5000);
-    </script>
+    checkUser();
+    setInterval(fetchGroup, 5000);
+</script>
 </body>
 </html>
