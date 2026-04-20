@@ -47,8 +47,7 @@
         <h2>👤 Мой профиль</h2>
         
         <div class="status-info-box">
-            <div class="info-row">👨‍💻 Вы зашли как: <b id="displayUsername">загрузка...</b></div>
-            <div class="info-row">📌 Текущий статус: <span id="currentStatusText">...</span></div>
+            <div id="authContent">Загрузка...</div>
         </div>
 
         <p style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">Выберите статус:</p>
@@ -79,27 +78,26 @@
     let currentUser = null;
     let tempStatus = { text: '', color: '' };
 
-    // --- ВСТАВКА: БЛОК АВТОРИЗАЦИИ ---
     async function checkUser() {
         const { data } = await supabase.auth.getUser();
+        const infoBox = document.querySelector('.status-info-box');
+
         if (data?.user) {
             currentUser = data.user;
             
             infoBox.innerHTML = `
                 <div class="info-row">👨‍💻 Вы зашли как: <b>${currentUser.user_metadata.full_name || currentUser.email}</b></div>
                 <div class="info-row">📌 Текущий статус: <span id="currentStatusText">загрузка...</span></div>
-                <button id="logoutBtn" style="background:none; border:none; color:#dc3545; cursor:pointer; font-size:12px; padding:5px 0; text-decoration:underline;">
-                    Выйти из аккаунта
-                </button>
+                <button id="logoutBtn" style="background:none; border:none; color:#dc3545; cursor:pointer; font-size:12px; padding:5px 0; text-decoration:underline;">Выйти из аккаунта</button>
             `;
-            
-            // ВОТ ЭТОТ БЛОК НУЖНО ДОБАВИТЬ СТРОГО ПОД innerHTML:
+
+            // Оживляем кнопку выхода
             document.getElementById('logoutBtn').addEventListener('click', async () => {
                 await supabase.auth.signOut();
-                // Перенаправляем на чистую ссылку без токенов
                 window.location.href = window.location.origin + window.location.pathname;
             });
 
+            // Обновляем профиль в базе
             await supabase.from('profiles').upsert({ 
                 id: currentUser.id, 
                 username: currentUser.user_metadata.full_name || currentUser.email 
@@ -107,8 +105,7 @@
 
             fetchGroup();
         } else {
-            // Если не вошли — рисуем кнопку
-            document.querySelector('.status-info-box').innerHTML = `
+            infoBox.innerHTML = `
                 <button id="loginBtn" style="width:100%; padding:10px; cursor:pointer; border-radius:8px; border:1px solid #ddd; background:white; display:flex; align-items:center; justify-content:center; gap:8px;">
                     <img src="https://www.google.com/favicon.ico" width="16"> Войти через Google
                 </button>
@@ -119,7 +116,6 @@
             });
         }
     }
-    // --------------------------------
 
     window.prepStatus = (element, text, color) => {
         document.querySelectorAll('.status-option').forEach(opt => opt.classList.remove('active'));
@@ -144,7 +140,8 @@
         const { data, error } = await supabase.from('profiles').select('*').order('username', { ascending: true });
         if (error) return;
 
-        document.getElementById('groupList').innerHTML = data.map(user => `
+        const list = document.getElementById('groupList');
+        list.innerHTML = data.map(user => `
             <div class="user-item">
                 <div class="status-dot" style="background: ${user.color || '#ccc'}"></div>
                 <div class="username">${user.username}</div>
@@ -154,8 +151,9 @@
 
         if (currentUser) {
             const me = data.find(u => u.id === currentUser.id);
-            if (me && document.getElementById('currentStatusText')) {
-                document.getElementById('currentStatusText').innerText = me.status || 'не задан';
+            const statusText = document.getElementById('currentStatusText');
+            if (me && statusText) {
+                statusText.innerText = me.status || 'не задан';
             }
         }
     }
