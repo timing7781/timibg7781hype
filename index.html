@@ -12,7 +12,7 @@
         }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg-color); display: flex; flex-direction: column; align-items: center; padding: 20px; color: #333; }
         
-        .card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); width: 100%; max-width: 550px; margin-bottom: 20px; }
+        .card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); width: 100%; max-width: 550px; margin-bottom: 20px; box-sizing: border-box; }
         h2 { margin-top: 0; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
         
         /* Верхняя панель инфо */
@@ -20,7 +20,7 @@
         .info-row { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; margin: 4px 0; }
         .info-row b { color: var(--primary-color); }
 
-        /* Таймер сессии (НОВОЕ) */
+        /* Таймер сессии */
         .timer-box { background: #f8f9fa; border-radius: 10px; padding: 15px; text-align: center; margin-bottom: 20px; border: 1px dashed #ccc; }
         #timerDisplay { font-size: 1.8rem; font-weight: bold; color: var(--primary-color); font-family: monospace; }
         .btn-session { margin-top: 10px; padding: 8px 20px; border-radius: 20px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; }
@@ -45,7 +45,6 @@
 
         /* Монитор группы */
         .user-item { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f3f5; }
-        /* Индикатор Онлайн (НОВОЕ) */
         .online-dot { width: 10px; height: 10px; border-radius: 50%; background: #ccc; margin-right: 10px; }
         .online-dot.active { background: var(--success-color); box-shadow: 0 0 8px var(--success-color); }
         
@@ -54,17 +53,23 @@
         .user-meta { text-align: right; }
         .status-tag { font-size: 0.75rem; color: #6c757d; background: #f8f9fa; padding: 4px 10px; border-radius: 10px; border: 1px solid #eee; }
         .session-tag { display: block; font-size: 0.7rem; color: var(--primary-color); margin-top: 2px; font-weight: bold; }
+
+        /* СТИЛИ ЧАТА (ДОБАВЛЕНО) */
+        #chatBox { height: 180px; overflow-y: auto; background: #fdfdfd; border: 1px solid #eee; padding: 12px; border-radius: 10px; margin-bottom: 10px; font-size: 0.9rem; text-align: left; display: flex; flex-direction: column; gap: 8px; }
+        .chat-msg { padding: 6px 12px; background: #f0f7ff; border-radius: 8px; align-self: flex-start; max-width: 85%; line-height: 1.4; }
+        .chat-msg b { color: var(--primary-color); font-size: 0.75rem; display: block; margin-bottom: 2px; }
+        .chat-input-container { display: flex; gap: 8px; }
+        #chatInput { flex-grow: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd; outline: none; }
+        .btn-send { padding: 10px 18px; background: var(--success-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="card">
         <h2>👤 Мой профиль</h2>
-        
         <div class="status-info-box">
             <div id="authContent">Загрузка...</div>
         </div>
-
         <div id="sessionUI" style="display:none;">
             <div class="timer-box">
                 <div style="font-size: 0.8rem; color: #666;">Текущая сессия:</div>
@@ -72,7 +77,6 @@
                 <button id="toggleSessionBtn" class="btn-session btn-start">▶ Начать учебу</button>
             </div>
         </div>
-
         <p style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">Выберите статус:</p>
         <div class="status-grid" id="statusPicker">
             <div class="status-option" onclick="prepStatus(this, '🟢 Онлайн', '#28a745')">🟢 Онлайн</div>
@@ -81,13 +85,21 @@
             <div class="status-option" onclick="prepStatus(this, '🗓️ Встреча', '#007bff')">🗓️ Встреча</div>
             <div class="status-option" onclick="prepStatus(this, '🍜 Обед', '#6f42c1')">🍜 Обед</div>
         </div>
-
         <button class="btn-save" onclick="applyStatus()">Сохранить статус</button>
     </div>
 
     <div class="card">
         <h2>👥 Монитор группы</h2>
         <div id="groupList"></div>
+    </div>
+
+    <div class="card" id="chatSection" style="display:none;">
+        <h2>💬 Общий чат</h2>
+        <div id="chatBox">Загрузка сообщений...</div>
+        <div class="chat-input-container">
+            <input type="text" id="chatInput" placeholder="Напиши группе...">
+            <button class="btn-send" onclick="window.sendMessage()">➡</button>
+        </div>
     </div>
 
 <script type="module">
@@ -109,6 +121,7 @@
         if (data?.user) {
             currentUser = data.user;
             document.getElementById('sessionUI').style.display = 'block';
+            document.getElementById('chatSection').style.display = 'block'; // Показываем чат
             
             infoBox.innerHTML = `
                 <div class="info-row">👨‍💻 Вы зашли как: <b>${currentUser.user_metadata.full_name || currentUser.email}</b></div>
@@ -121,7 +134,6 @@
                 window.location.reload();
             });
 
-            // Первичный апсерт профиля
             await supabase.from('profiles').upsert({ 
                 id: currentUser.id, 
                 username: currentUser.user_metadata.full_name || currentUser.email 
@@ -129,7 +141,7 @@
 
             setupSessionLogic();
             fetchGroup();
-            // Запускаем обновление "last_seen" каждые 30 сек
+            fetchMessages(); // Загружаем сообщения
             setInterval(updateHeartbeat, 30000);
             updateHeartbeat();
         } else {
@@ -145,26 +157,19 @@
         }
     }
 
-    // ЛОГИКА ТАЙМЕРА (НОВОЕ)
     async function setupSessionLogic() {
         const btn = document.getElementById('toggleSessionBtn');
-        
-        // Проверяем, не идет ли уже сессия (из базы)
         const { data } = await supabase.from('profiles').select('is_studying, session_start').eq('id', currentUser.id).single();
-        
         if (data?.is_studying && data.session_start) {
             startLocalTimer(data.session_start);
         }
-
         btn.onclick = async () => {
             const isStarting = btn.classList.contains('btn-start');
             const startTime = isStarting ? new Date().toISOString() : null;
-
             const { error } = await supabase.from('profiles').update({
                 is_studying: isStarting,
                 session_start: startTime
             }).eq('id', currentUser.id);
-
             if (!error) {
                 if (isStarting) startLocalTimer(startTime);
                 else stopLocalTimer();
@@ -176,7 +181,6 @@
         const btn = document.getElementById('toggleSessionBtn');
         btn.innerText = "⏹ Завершить учебу";
         btn.classList.replace('btn-start', 'btn-stop');
-        
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             const diff = Math.floor((new Date() - new Date(startTime)) / 1000);
@@ -201,6 +205,38 @@
         }
     }
 
+    // ЛОГИКА ЧАТА (ДОБАВЛЕНО)
+    window.sendMessage = async () => {
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text || !currentUser) return;
+
+        const { error } = await supabase.from('messages').insert({
+            user_id: currentUser.id,
+            username: currentUser.user_metadata.full_name || currentUser.email,
+            text: text
+        });
+
+        if (!error) {
+            input.value = '';
+            fetchMessages();
+        }
+    };
+
+    async function fetchMessages() {
+        const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(20);
+        if (data) {
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML = data.reverse().map(m => `
+                <div class="chat-msg">
+                    <b>${m.username.split(' ')[0]}:</b>
+                    ${m.text}
+                </div>
+            `).join('');
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+    }
+
     window.prepStatus = (element, text, color) => {
         document.querySelectorAll('.status-option').forEach(opt => opt.classList.remove('active'));
         element.classList.add('active');
@@ -217,19 +253,14 @@
     async function fetchGroup() {
         const { data, error } = await supabase.from('profiles').select('*').order('username', { ascending: true });
         if (error) return;
-
         const list = document.getElementById('groupList');
         list.innerHTML = data.map(user => {
-            // Проверка на онлайн (был активен меньше 60 секунд назад)
             const isOnline = user.last_seen && (new Date() - new Date(user.last_seen) < 60000);
-            
-            // Расчет времени сессии для других
             let sessionTimeText = "";
             if (user.is_studying && user.session_start) {
                 const diffMin = Math.floor((new Date() - new Date(user.session_start)) / 60000);
                 sessionTimeText = `<span class="session-tag">📖 Учится: ${diffMin} мин</span>`;
             }
-
             return `
                 <div class="user-item">
                     <div class="online-dot ${isOnline ? 'active' : ''}"></div>
@@ -242,7 +273,6 @@
                 </div>
             `;
         }).join('');
-
         if (currentUser) {
             const me = data.find(u => u.id === currentUser.id);
             if (me) document.getElementById('currentStatusText').innerText = me.status || 'не задан';
@@ -250,7 +280,10 @@
     }
 
     checkUser();
-    setInterval(fetchGroup, 5000);
+    setInterval(() => {
+        fetchGroup();
+        if (currentUser) fetchMessages();
+    }, 5000);
 </script>
 </body>
 </html>
