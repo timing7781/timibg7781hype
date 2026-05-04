@@ -321,108 +321,256 @@
     </div>
 
 <script type="module">
-    // Интеграция с Supabase SDK через ESM
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+   import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-    // Конфигурация подключения к облачной БД
-    const URL = 'https://rgyuyvoiovrwnrjgrnbm.supabase.co'; 
-    const KEY = 'sb_publishable_HTaSDRoIFtfeisZ_08lS0g_bFp0Zlju'; 
-    const supabase = createClient(URL, KEY);
+// Конфигурация Supabase
+const URL = 'https://rgyuyvoiovrwnrjgrnbm.supabase.co'; 
+const KEY = 'sb_publishable_HTaSDRoIFtfeisZ_08lS0g_bFp0Zlju'; 
+const supabase = createClient(URL, KEY);
+
+let currentUser = null;
+let timerInterval = null;
+let tempStatus = { text: '' };
+
+/**
+ * 1. ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК (Tabs)
+ */
+window.openTab = (evt, tabName) => {
+    const contents = document.getElementsByClassName("tab-content");
+    for (let i = 0; i < contents.length; i++) contents[i].classList.remove("active");
+
+    const btns = document.getElementsByClassName("tab-btn");
+    for (let i = 0; i < btns.length; i++) btns[i].classList.remove("active");
+
+    document.getElementById(tabName).classList.add("active");
+    evt.currentTarget.classList.add("active");
     
-    let currentUser = null;         // Текущий авторизованный объект пользователя
-    let tempStatus = { text: '' };  // Временное хранилище выбранного статуса
-    let timerInterval = null;       // Ссылка на интервал локального таймера
-
-    /**
-     * ГЛАВНАЯ ФУНКЦИЯ: Проверка состояния авторизации и инициализация модулей
-     */
-    async function checkUser() {
-        const { data } = await supabase.auth.getUser();
-        const infoBox = document.querySelector('.status-info-box');
-
-        if (data?.user) {
-            currentUser = data.user;
-            
-            // Активация интерфейса для авторизованных
-            document.getElementById('sessionUI').style.display = 'block';
-            document.getElementById('chatSection').style.display = 'block'; 
-            document.getElementById('rankCard').style.display = 'block';
-            document.getElementById('achCard').style.display = 'block';
-            
-            // Получаем расширенную статистику для профиля
-            const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
-            const name = currentUser.user_metadata.full_name || currentUser.email;
-
-            // ОБНОВЛЕННЫЙ ВИД ПРОФИЛЯ С КАРТОЧКАМИ СТАТИСТИКИ
-            infoBox.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
-                    <div style="width: 50px; height: 50px; background: var(--primary-color); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold;">
-                        ${name[0].toUpperCase()}
-                    </div>
-                    <div>
-                        <div style="font-weight: bold;">${name}</div>
-                        <div style="font-size: 0.8rem; color: var(--success-color);">● В системе</div>
-                    </div>
-                </div>
-
-                <div class="stats-grid-container">
-                    <div class="stat-card">
-                        <b>${Math.floor((profile?.total_study_minutes || 0) / 60)}ч</b>
-                        <span>Учёба</span>
-                    </div>
-                    <div class="stat-card">
-                        <b>${profile?.sessions_count || 0}</b>
-                        <span>Сессий</span>
-                    </div>
-                    <div class="stat-card">
-                        <b>${profile?.messages_count || 0}</b>
-                        <span>Сообщ.</span>
-                    </div>
-                    <div class="stat-card">
-                        <b>2</b>
-                        <span>Ачивки</span>
-                    </div>
-                </div>
-
-                <div class="info-row" style="margin-top: 15px; font-size: 0.85rem;">📌 Статус: <span id="currentStatusText">${profile?.status || 'не установлен'}</span></div>
-                
-                <button id="logoutBtn" style="background:none; border:none; color:var(--danger-color); cursor:pointer; font-size:12px; margin-top:10px; text-decoration:underline; width: 100%; text-align: right;">Выйти из системы</button>
-            `;
-
-            document.getElementById('logoutBtn').onclick = async () => {
-                await supabase.auth.signOut();
-                window.location.reload();
-            };
-
-            // Регистрация/Обновление профиля в БД
-            await supabase.from('profiles').upsert({ 
-                id: currentUser.id, 
-                username: name
-            });
-
-            // Запуск логики модулей
-            initSessionLogic();
-            fetchGroup();
-            fetchMessages(); 
-            fetchRanking();      
-            fetchAchievements();  
-            
-            // ТЕХНИЧЕСКИЙ ХАРТБИТ: Обновление времени активности
-            updateHeartbeat(); 
-            setInterval(updateHeartbeat, 30000); // Каждые 30 сек подтверждаем онлайн
-        } else {
-            // Интерфейс для гостей (OAuth Google)
-            infoBox.innerHTML = `
-                <button id="loginBtn" style="width:100%; padding:14px; cursor:pointer; border-radius:10px; border:1px solid rgba(255,255,255,0.1); background:white; color: #1e293b; display:flex; align-items:center; justify-content:center; gap:10px; font-weight:bold;">
-                    <img src="https://www.google.com/favicon.ico" width="18"> Авторизация через Google
-                </button>
-            `;
-            document.getElementById('loginBtn').onclick = () => supabase.auth.signInWithOAuth({ 
-                provider: 'google',
-                options: { redirectTo: window.location.href }
-            });
-        }
+    if(tabName === 'chatTab') {
+        const cb = document.getElementById('chatBox');
+        if(cb) cb.scrollTop = cb.scrollHeight;
     }
+};
+
+/**
+ * 2. ПРОВЕРКА ПОЛЬЗОВАТЕЛЯ И ОБНОВЛЕНИЕ ПРОФИЛЯ
+ */
+async function checkUser() {
+    const { data } = await supabase.auth.getUser();
+    const infoBox = document.getElementById('authContent');
+
+    if (data?.user) {
+        currentUser = data.user;
+        document.getElementById('sessionUI').style.display = 'block';
+        document.getElementById('mainTabs').style.display = 'block';
+
+        // Загружаем профиль и ачивки
+        const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+        const { data: myAch } = await supabase.from('user_achievements').select('achievement_id').eq('user_id', currentUser.id);
+        
+        const name = currentUser.user_metadata.full_name || currentUser.email;
+
+        // Рендерим карточку профиля с табами статистики
+        infoBox.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div style="width: 50px; height: 50px; background: var(--primary-color); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem;">
+                    ${name[0].toUpperCase()}
+                </div>
+                <div style="flex-grow: 1">
+                    <div style="font-size: 1rem; font-weight: bold;">${name}</div>
+                    <div style="font-size: 0.8rem; color: var(--success-color);">● В системе</div>
+                </div>
+                <button id="logoutBtn" style="background:none; border:none; color:var(--danger-color); font-size: 0.8rem; cursor:pointer; text-decoration: underline;">Выйти</button>
+            </div>
+
+            <div class="stats-grid-container">
+                <div class="stat-card"><b>${Math.floor((profile?.total_study_minutes || 0) / 60)}ч</b><span>Учёба</span></div>
+                <div class="stat-card"><b>${profile?.sessions_count || 0}</b><span>Сессий</span></div>
+                <div class="stat-card"><b>${profile?.messages_count || 0}</b><span>Сообщ.</span></div>
+                <div class="stat-card"><b>${myAch?.length || 0}</b><span>Достиж.</span></div>
+            </div>
+        `;
+
+        document.getElementById('logoutBtn').onclick = async () => { 
+            await supabase.auth.signOut(); 
+            window.location.reload(); 
+        };
+
+        // Запускаем все модули
+        initSessionLogic();
+        fetchGroup();
+        fetchMessages(); 
+        fetchRanking();      
+        fetchAchievements();  
+        
+        setInterval(updateHeartbeat, 30000);
+    } else {
+        infoBox.innerHTML = `<button id="loginBtn" class="btn-save" style="background:white; color:black; font-weight:bold;">Войти через Google</button>`;
+        document.getElementById('loginBtn').onclick = () => supabase.auth.signInWithOAuth({ provider: 'google' });
+    }
+}
+
+/**
+ * 3. ЗАГРУЗКА ДОСТИЖЕНИЙ С ПРОВЕРКОЙ ВЛАДЕНИЯ
+ */
+async function fetchAchievements() {
+    const { data: all } = await supabase.from('achievements').select('*');
+    const { data: my } = await supabase.from('user_achievements').select('achievement_id').eq('user_id', currentUser.id);
+    
+    const myIds = my?.map(item => item.achievement_id) || [];
+    const icons = { 'Ранняя пташка': '🌅', 'Марафонец': '🏃', 'Активист': '💬' };
+
+    const achList = document.getElementById('achList');
+    if (!achList) return;
+
+    achList.innerHTML = all.map(a => {
+        const isUnlocked = myIds.includes(a.id);
+        return `
+            <div class="ach-item ${isUnlocked ? 'unlocked' : ''}" style="transition: 0.3s;">
+                <div style="font-size: 2rem; filter: ${isUnlocked ? 'none' : 'grayscale(1) opacity(0.3)'};">
+                    ${icons[a.name] || '🏆'}
+                </div>
+                <div style="font-size: 0.8rem; font-weight: bold; margin-top: 8px;">${a.name}</div>
+                <div style="font-size: 0.65rem; color: var(--text-muted);">${a.description || ''}</div>
+                <div style="margin-top: 5px; font-size: 0.6rem; color: ${isUnlocked ? 'var(--success-color)' : 'var(--danger-color)'}; font-weight: bold;">
+                    ${isUnlocked ? 'РАЗБЛОКИРОВАНО' : 'ЗАКРЫТО'}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+/**
+ * 4. ЛОГИКА ТАЙМЕРА
+ */
+async function initSessionLogic() {
+    const btn = document.getElementById('toggleSessionBtn');
+    const { data: profile } = await supabase.from('profiles').select('is_studying, session_start').eq('id', currentUser.id).single();
+
+    if (profile?.is_studying && profile.session_start) runLocalTimer(profile.session_start);
+
+    btn.onclick = async () => {
+        const isStarting = btn.classList.contains('btn-start');
+        const now = new Date();
+
+        if (isStarting) {
+            const startTime = now.toISOString();
+            await supabase.from('profiles').update({ is_studying: true, session_start: startTime }).eq('id', currentUser.id);
+            runLocalTimer(startTime);
+        } else {
+            clearInterval(timerInterval);
+            const { data: p } = await supabase.from('profiles').select('session_start, total_study_minutes, sessions_count').eq('id', currentUser.id).single();
+            if (p?.session_start) {
+                const diff = Math.floor((now - new Date(p.session_start)) / 60000);
+                await supabase.from('profiles').update({ 
+                    total_study_minutes: (p.total_study_minutes || 0) + diff,
+                    sessions_count: (p.sessions_count || 0) + 1,
+                    is_studying: false, 
+                    session_start: null 
+                }).eq('id', currentUser.id);
+            }
+            document.getElementById('timerDisplay').innerText = "00:00:00";
+            btn.innerText = "▶ Начать период учебы";
+            btn.classList.replace('btn-stop', 'btn-start');
+            checkUser(); // Обновляем статистику на главной
+        }
+    };
+}
+
+function runLocalTimer(startTime) {
+    const btn = document.getElementById('toggleSessionBtn');
+    btn.innerText = "⏹ Завершить учебу";
+    btn.classList.replace('btn-start', 'btn-stop');
+    timerInterval = setInterval(() => {
+        const diff = Math.floor((new Date() - new Date(startTime)) / 1000);
+        const h = Math.floor(diff / 3600).toString().padStart(2, '0');
+        const m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+        const s = (diff % 60).toString().padStart(2, '0');
+        document.getElementById('timerDisplay').innerText = `${h}:${m}:${s}`;
+    }, 1000);
+}
+
+/**
+ * 5. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (РЕЙТИНГ, ГРУППА, ЧАТ)
+ */
+async function fetchRanking() {
+    const { data } = await supabase.from('profiles').select('*').order('total_study_minutes', { ascending: false }).limit(5);
+    if (data) {
+        document.getElementById('rankList').innerHTML = data.map((s, i) => `
+            <div class="rank-row">
+                <div style="width: 25px; font-weight: bold; color: var(--primary-color);">${i+1}</div>
+                <div class="rank-avatar" style="width: 35px; height: 35px; border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; border: 1px solid var(--primary-color);">
+                    ${s.username ? s.username[0].toUpperCase() : '?'}
+                </div>
+                <div style="flex-grow: 1; font-size: 0.9rem; margin-left: 10px;">${s.username}</div>
+                <b style="color: var(--success-color); font-size: 0.85rem;">${s.total_study_minutes} мин</b>
+            </div>
+        `).join('');
+    }
+}
+
+async function fetchGroup() {
+    const { data } = await supabase.from('profiles').select('*').order('last_seen', { ascending: false });
+    if (data) {
+        document.getElementById('groupList').innerHTML = data.map(u => {
+            const isOnline = u.last_seen && (new Date() - new Date(u.last_seen) < 60000);
+            return `
+                <div class="user-item">
+                    <div class="online-dot ${isOnline ? 'active' : ''}"></div>
+                    <div style="flex-grow: 1; font-size: 0.9rem;">${u.username}</div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px;">
+                        ${u.status || 'В сети'}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+window.sendMessage = async () => {
+    const input = document.getElementById('chatInput');
+    const val = input.value.trim();
+    if (!val) return;
+    await supabase.from('messages').insert({ 
+        user_id: currentUser.id, 
+        username: currentUser.user_metadata.full_name || currentUser.email, 
+        text: val 
+    });
+    input.value = '';
+    fetchMessages();
+};
+
+async function fetchMessages() {
+    const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(20);
+    if (data) {
+        const chatBox = document.getElementById('chatBox');
+        chatBox.innerHTML = data.reverse().map(m => `
+            <div class="chat-msg"><b>${m.username.split(' ')[0]}</b>: ${m.text}</div>
+        `).join('');
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+}
+
+async function updateHeartbeat() {
+    if (currentUser) await supabase.from('profiles').update({ last_seen: new Date().toISOString() }).eq('id', currentUser.id);
+}
+
+window.prepStatus = (el, txt) => {
+    document.querySelectorAll('.status-option').forEach(o => o.classList.remove('active'));
+    el.classList.add('active');
+    tempStatus.text = txt;
+};
+
+window.applyStatus = async () => {
+    if (tempStatus.text) {
+        await supabase.from('profiles').update({ status: tempStatus.text }).eq('id', currentUser.id);
+        fetchGroup();
+    }
+};
+
+// Запуск приложения
+checkUser();
+// Обновление данных каждые 10 секунд
+setInterval(() => { fetchGroup(); fetchMessages(); fetchRanking(); }, 10000);
 
     /**
      * МОДУЛЬ ТАЙМЕРА: Работа с учебными сессиями + сохранение накопленного времени
