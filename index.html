@@ -1,724 +1,10 @@
-
-
-
-Пригласить членов команды
-Я прошу тебя строго придерживаться предоставленного кода. Мой запрос заключается в том, чтобы развить функционал проекта, не меняя его архитектуру: мне нужно сохранить единую страницу без вкладок, оригинальный дизайн с блюр-эффектами и анимациями, а также специфическую логику взаимодействия с Supabase через глобальные функции window.. Предыдущие попытки упростить код привели к потере важных стилей и механик, поэтому любая правка должна интегрироваться в текущую структуру «как родная», не удаляя существующие блоки.
-
-Thought for 4s
-Принял. Буду работать строго поверх существующей структуры, без переписывания проекта “с нуля”.
-
-При правках буду соблюдать такие ограничения:
-
-Одна страница
-— не добавляю вкладки, роутинг, новые страницы или радикальную декомпозицию интерфейса.
-
-Архитектура сохраняется
-— существующие блоки, структура DOM/JS/CSS и логика остаются на месте; новые функции встраиваются точечно.
-
-Дизайн не упрощается
-— сохраняю блюр-эффекты, градиенты, анимации, карточки, визуальную глубину и текущий стиль проекта.
-
-Supabase через window.*
-— не заменяю глобальные функции на другую архитектуру, хуки, классы, модули или стороннюю обёртку.
-
-Никакого удаления важных блоков
-— не вырезаю существующие механики, стили или обработчики без явного указания.
-
-Формат правок
-— буду давать либо точечные фрагменты “замени этот блок”, либо аккуратно обновлённый полный файл, сохраняя текущий код.
-
-Пришлите текущий код и опишите, какой именно функционал нужно добавить.
-
-
-смотри, у меня по сути все готово но надо внести некоторые правки в плане функцонала статуса моинторинга - поможешь 
-
-Thought for a couple of seconds
-Да, помогу.
-
-Чтобы внести правки без ломания текущей архитектуры, пришли мне:
-
-Файл или фрагмент кода, где реализован статус мониторинга.
-
-Код функций, связанных с Supabase, особенно если там есть что-то вроде:
-
-window.load...
-
-window.update...
-
-window.save...
-
-window.supabase...
-
-Что именно сейчас работает неправильно.
-
-Как должно работать после правки.
-
-Лучше всего опиши в таком формате:
-
-Сейчас:
-- статус показывает ...
-- при нажатии ...
-- после обновления страницы ...
-
-Нужно:
-- статус должен ...
-- если мониторинг активен ...
-- если ошибка ...
-- если данных нет ...
-Я тогда предложу точечные изменения прямо в существующий код: что заменить, что добавить и куда вставить, без удаления дизайна, блюров, анимаций и текущей логики window.*.
-
-
-я тебе сейчас пришлю свой статус мониторинга, и скрины из примера как должно быть, и на будущее - твоя задача это дополнять мой код, не сокращать его, не менять функционал и так далее. все делай только с моим разрешением
-
-Сохраненная память обновлена
-Thought for a couple of seconds
-Принял.
-
-Присылай:
-
-текущий код блока статуса мониторинга;
-
-скрины примера, как должно выглядеть/работать;
-
-желательно коротко: что именно нужно изменить в поведении.
-
-Я буду работать только по твоему коду: не сокращать, не переписывать архитектуру, не удалять существующие стили и механику, не менять функционал без твоего разрешения. Сначала покажу, какие правки предлагаю, и только после твоего подтверждения можно будет собирать финальный вариант.
-
-
-Загруженное изображение
-Загруженное изображение
-вот мой статус мониторинга ниже пришлю скрины из примера
-
-Thought for 4s
-Вижу текущий вариант:
-
-блок «Монитор активности группы» расположен на той же единой странице;
-
-у студентов есть индикаторы слева и статусные бейджи справа;
-
-статусы выглядят как: Встреча, Онлайн, В сети;
-
-ниже расположен корпоративный чат;
-
-общий дизайн: тёмные карточки, блюр/стекло, мягкие границы, фон сохраняется.
-
-Теперь пришли скрины из примера, как должно быть.
-
-После этого лучше всего ещё прислать код именно этих частей:
-
-// монитор активности группы
-// логика статусов студентов
-// функции window.* для Supabase
-// рендер списка студентов / статусов
-Я сначала сравню твой текущий вариант с примером и напишу план точечных правок, без изменения архитектуры и без удаления существующих блоков. Финальный код дам только после твоего подтверждения.
-
-
-Загруженное изображение
-вот пример, ниже распишу что я хочу видеть у себя
-
-Thought for 4s
-Понял пример.
-
-По скрину вижу, что в примере статус-мониторинг устроен не просто как список участников, а как единый функциональный блок:
-
-есть крупная зона «Ваш профиль»;
-
-статусы выбираются отдельными кнопками: В сети / Отошёл / Занят / Не беспокоить;
-
-ниже есть сводка по группе: учатся / перерывы / офлайн;
-
-есть переключатели разделов: Участники / Рейтинг / Достижения;
-
-при этом всё остаётся на одной странице, без переходов на отдельные вкладки;
-
-визуально сохранён тёмный glassmorphism-стиль: карточки, обводки, подсветки, плавные состояния.
-
-Расписывай, что именно хочешь видеть у себя. После этого мне нужен будет твой актуальный код блока мониторинга/профиля, чтобы я предложил точечную интеграцию без сокращений и без изменения текущей логики window.*.
-
-
-- я хочу у себя видеть статус тех кто учиться, и кто офлайн. затем в топе студентов видеть их аватарки аккаунтов гугл, также: внедрить вкладки по которым можно будет переходить: участники, рейтинг, достижения - также добавить уникальные достижения. и, что я хочу исправить: счетчик сессий что то не работает, также хотел бы чтобы мои отправленные сообщения шли с правой стороны, а не слева. ну и думаю на этом все. и хочется чтобы все работало нормально. я с другой нейронкой возился 2 часа и мы ничего не реализовали.
-
-Thought for 9s
-Помогу. По скринам и описанию задача понятна, но реализовывать без твоего текущего кода нельзя: иначе снова получится переписывание “по-своему”, а не аккуратное дополнение твоей структуры.
-
-Что будем делать точечно, не ломая архитектуру:
-
-1. Статусы участников
-Добавим/исправим отображение:
-
-кто учится;
-
-кто офлайн;
-
-кто в сети / отошёл / занят / не беспокоить, если эти статусы уже есть в твоей логике.
-
-Важно: я не буду заменять твою систему статусов. Нужно будет посмотреть, как у тебя сейчас хранятся статусы в Supabase: status, activity_status, is_online, last_seen, current_session или иначе.
-
-2. Топ студентов с Google-аватарками
-Можно сделать так:
-
-если у пользователя есть Google avatar в Supabase Auth metadata — берём его;
-
-если нет — показываем текущую букву/инициалы, как сейчас;
-
-существующий дизайн карточек рейтинга не удаляем.
-
-Обычно Google-аватар может лежать в одном из таких полей:
-
-user.user_metadata.avatar_url
-user.user_metadata.picture
-profile.avatar_url
-Но точно скажу только после просмотра твоего кода и структуры таблиц.
-
-3. Внутренние переключатели: участники / рейтинг / достижения
-Чтобы не нарушать твой принцип единой страницы, я предлагаю делать это не как настоящие страницы или роутинг, а как внутренний переключатель внутри одного блока:
-
-[Участники] [Рейтинг] [Достижения]
-При клике будет меняться только содержимое секции внутри карточки. Страница останется одна, без роутера и без отдельной архитектуры.
-
-4. Уникальные достижения
-Можно добавить достижения по событиям, например:
-
-Первый шаг — первая учебная сессия;
-
-Возвращение — вернулся после перерыва;
-
-Марафонец — накопил определённое количество минут;
-
-Активист — написал определённое количество сообщений;
-
-Трудоголик — много учебных часов;
-
-Легенда — высокая позиция в рейтинге;
-
-Душа компании — активность в чате.
-
-Но я сначала посмотрю, какие данные у тебя уже есть: минуты, сессии, сообщения, статус, рейтинг. Если данных нет — добавим минимально, без переделки таблиц, либо через отдельную таблицу достижений, если ты разрешишь.
-
-5. Исправление счётчика сессий
-Тут нужно увидеть код. Возможные причины:
-
-сессия стартует, но sessions_count не обновляется;
-
-счётчик обновляется только в интерфейсе, но не сохраняется в Supabase;
-
-поле называется не так, как ожидает код;
-
-обновление происходит не у текущего пользователя;
-
-после перезагрузки данные берутся из другого источника;
-
-завершение сессии не вызывает функцию сохранения.
-
-Без кода я не буду гадать.
-
-6. Сообщения в чате справа для текущего пользователя
-Это обычно исправляется сравнением отправителя сообщения с текущим пользователем:
-
-const isMine = message.user_id === currentUser.id;
-И дальше добавляется класс, например:
-
-messageElement.classList.toggle('my-message', isMine);
-А CSS уже выравнивает:
-
-.my-message {
-  align-self: flex-end;
-  text-align: right;
-}
-Но я не буду давать финальный код, пока не увижу твою текущую разметку чата, чтобы не сломать дизайн.
-
-Что мне нужно от тебя
-Пришли, пожалуйста, код этих частей:
-
-HTML-разметка блока профиля, мониторинга, рейтинга, достижений и чата.
-
-CSS для этих блоков.
-
-JS, где есть:
-
-Supabase initialization;
-
-window.* функции;
-
-загрузка пользователей;
-
-обновление статуса;
-
-запуск/остановка учебной сессии;
-
-рендер рейтинга;
-
-отправка и отображение сообщений.
-
-По возможности — структуру таблиц Supabase или скрины колонок таблиц.
-
-Не присылай service_role ключ, пароли или приватные токены. anon public key, если он уже в клиентском коде, обычно не секретный, но лучше можешь замазать.
-
-После кода я сначала сделаю план конкретных вставок: что добавить, что заменить, какие функции не трогать. Финальную версию дам только после твоего подтверждения.
-
-
-тебе же можно доверить полный код, и твой готовый код сразу использовать в гитхаб?
-
-Thought for 6s
-Да, можешь доверить мне полный код для анализа и доработки, но с важными ограничениями по безопасности.
-
-Не присылай:
-
-service_role key
-database password
-JWT secret
-OAuth client secret
-SMTP password
-GitHub token
-любые приватные API-ключи
-.env с реальными секретами
-Можно прислать:
-
-HTML
-CSS
-JS
-Supabase anon public key, если он уже используется на фронтенде
-структуру таблиц Supabase
-скрины таблиц без секретов
-Готовый код можно будет использовать в GitHub, но я бы делал так:
-
-Ты присылаешь текущий полный код.
-
-Я сначала анализирую структуру и пишу, какие блоки буду дополнять.
-
-Потом даю готовую версию кода или точечный patch.
-
-Ты проверяешь изменения.
-
-После этого уже вставляешь в проект и пушишь в GitHub.
-
-Я не буду самовольно менять архитектуру, удалять блоки, упрощать дизайн или заменять window.*-логику. Если для какой-то функции потребуется новая таблица/колонка в Supabase, я отдельно напишу SQL и объясню, зачем это нужно. Без твоего подтверждения такую правку не буду считать обязательной.
-
-Можешь прислать полный код одним сообщением или файлом. Лучше всего — index.html, если проект у тебя сейчас в одном файле.
-
-
-проект у меня в гитхабе лежит, оттуда я запускаю свой статус мониторинга
-
-Thought for 7s
-Да, это даже удобнее.
-
-Пришли мне:
-
-1. ссылку на GitHub-репозиторий
-2. ссылку на рабочую страницу, если запускаешь через GitHub Pages
-3. название основного файла: index.html / script.js / style.css или другое
-4. уточни: репозиторий публичный или приватный
-Если репозиторий публичный, я смогу посмотреть код по ссылке и подготовить правки под твою текущую структуру.
-
-Если репозиторий приватный, лучше сделай одно из двух:
-
-Вариант 1:
-скачай проект ZIP-архивом и прикрепи сюда
-
-Вариант 2:
-скопируй сюда основные файлы:
-- index.html
-- style.css
-- script.js
-- supabase.js, если есть
-Я не буду пушить изменения напрямую в GitHub, потому что у меня нет доступа к твоему аккаунту и репозиторию. Но я могу подготовить код так, чтобы ты сразу вставил его в проект и закоммитил.
-
-Важно: если в репозитории есть ключи, не присылай приватные:
-
-service_role key
-database password
-GitHub token
-OAuth client secret
-.env с секретами
-Supabase anon public key, который уже используется на фронтенде, можно оставить, но если сомневаешься — замажь.
-
-Когда пришлёшь ссылку или файлы, я сначала разберу текущую структуру и предложу точечный план правок по мониторингу, рейтингу, достижениям, сессиям и чату.
-
-
-
-Вставленный текст(5).txt
-Документ
-
-Thought for 19s
-Код получил и просмотрел. Вижу, что проект действительно в одном index.html, с текущими блоками профиля, таймера, рейтинга, достижений, монитора группы и чата, а Supabase используется прямо внутри страницы через ESM и глобальные функции window.prepStatus, window.applyStatus, window.sendMessage. 
-
-
-Я не буду сразу переписывать файл целиком без твоего разрешения. Сначала фиксирую, что именно нужно добавить и где.
-
-Что уже есть в твоём коде
-У тебя уже реализованы:
-
-авторизация через Google;
-
-таблица profiles;
-
-last_seen для онлайн-статуса;
-
-is_studying и session_start для учебной сессии;
-
-total_study_minutes;
-
-sessions_count;
-
-messages_count;
-
-таблицы achievements и user_achievements;
-
-рейтинг через fetchRanking();
-
-достижения через fetchAchievements();
-
-чат через messages;
-
-отправка сообщений через window.sendMessage().
-
-То есть проект не надо собирать заново. Его надо аккуратно дорастить.
-
-Что нужно исправить
-1. Счётчик сессий
-В твоём коде сессия засчитывается только если прошло больше 0 минут:
-
-if (diffMin > 0) {
-    const newTotal = (p.total_study_minutes || 0) + diffMin;
-    const newSessions = (p.sessions_count || 0) + 1;
-}
-Из-за этого если ты тестируешь сессию меньше минуты, sessions_count не увеличится. Это одна из вероятных причин, почему кажется, что счётчик не работает.
-
-Я предлагаю сделать так:
-
-sessions_count увеличивать при каждом корректном завершении сессии;
-
-total_study_minutes увеличивать только на фактические минуты;
-
-добавить обработку ошибок Supabase, чтобы видеть, если колонка или RLS мешают обновлению.
-
-2. Сообщения текущего пользователя справа
-Сейчас fetchMessages() рендерит все сообщения одинаково:
-
-<div class="chat-msg">
-Нужно добавить проверку:
-
-const isMine = m.user_id === currentUser.id;
-И рендерить свои сообщения с дополнительным классом:
-
-<div class="chat-msg my-message">
-Потом CSS аккуратно выровняет их вправо, не ломая текущий стиль чата.
-
-3. Аватарки Google в топе студентов
-Сейчас в рейтинге у тебя используется первая буква имени:
-
-<div class="rank-avatar">${s.username[0].toUpperCase()}</div>
-Нужно при авторизации сохранить Google-аватар в profiles, например:
-
-avatar_url: currentUser.user_metadata.avatar_url || currentUser.user_metadata.picture || null
-А в рейтинге и участниках показывать:
-
-если avatar_url есть — <img>;
-
-если нет — текущую букву, как fallback.
-
-Для этого нужна колонка avatar_url в таблице profiles. Если её нет, я отдельно дам SQL.
-
-4. Статусы: кто учится и кто офлайн
-Сейчас fetchGroup() уже умеет определять онлайн по last_seen и учебу по is_studying.
-
-Нужно добавить визуально:
-
-отдельный счётчик учатся;
-
-отдельный счётчик офлайн;
-
-можно также оставить текущие статусы справа: Онлайн, Отошёл, Занят, Обед.
-
-Технически это можно сделать без новой таблицы: данные уже есть в profiles.
-
-5. Внутренние переключатели: участники / рейтинг / достижения
-Сейчас у тебя это три отдельные карточки:
-
-<div class="card" id="rankCard">
-<div class="card" id="achCard">
-<div class="card">
-    <h2>👥 Монитор активности группы</h2>
-Чтобы сохранить одну страницу, я предлагаю сделать не роутинг и не настоящие страницы, а внутренний переключатель внутри блока мониторинга:
-
-[Участники] [Рейтинг] [Достижения]
-При клике будет меняться только содержимое внутри карточки. Это не нарушает единую страницу.
-
-Но тут нужно твоё разрешение на один архитектурный момент:
-можно ли объединить визуально рейтинг и достижения внутрь карточки “Монитор активности группы”, оставив существующие функции fetchGroup(), fetchRanking() и fetchAchievements()?
-
-Я могу сделать это без удаления логики.
-
-6. Уникальные достижения
-У тебя уже есть функция grantAchievement(name), но её нужно поправить. Сейчас там используется цепочка:
-
-insert(...).onConflict('do nothing')
-Для Supabase JS это небезопасный вариант. Надёжнее использовать upsert() при наличии уникального ограничения на пару:
-
-user_id + achievement_id
-Я предлагаю добавить достижения:
-
-Первый шаг — завершил первую учебную сессию;
-
-Возвращение — завершил 2+ сессии;
-
-Марафонец — одна сессия от 120 минут;
-
-Активист — 10 сообщений в чате;
-
-Душа компании — 50 сообщений;
-
-Стабильность — 5 учебных сессий;
-
-Легенда — 1000+ минут учёбы;
-
-Ранний старт — начал учёбу до 08:00.
-
-Часть условий уже можно считать по profiles. Для списка достижений нужно проверить, есть ли записи в таблице achievements.
-
-Что мне нужно от тебя перед финальным кодом
-Ответь коротко:
-
-Разрешаю:
-1. Объединить участников / рейтинг / достижения в один блок с внутренними переключателями: да/нет
-2. Добавить колонку avatar_url в profiles: да/нет/уже есть
-3. Добавить новые достижения в таблицу achievements: да/нет/уже есть
-4. Дать полный готовый index.html целиком или точечные вставки?
-После этого я подготовлю код так, чтобы ты мог сразу вставить его в GitHub, без удаления твоих стилей, фона, блюра, анимаций и текущей логики window.*.
-
-
-разрешаю работу с кодом, 1. да 2. да, лучше обновить. 3. да, чтобы вкладка не пустела лучше добавить. 4. дать полный готовый код
-
-Thought for 1m 7s
-Updated Index Monitoring
-· html
-<!DOCTYPE html>
-            const { error: updateProfileError } = await supabase
-                .from('profiles')
-                .update({ messages_count: newMessagesCount, last_seen: new Date().toISOString() })
-                .eq('id', currentUser.id);
-
-            if (updateProfileError) {
-                console.error('Ошибка обновления счетчика сообщений:', updateProfileError.message);
-            } else {
-                await evaluateAchievements({
-                    messagesCount: newMessagesCount,
-                    totalMinutes: p?.total_study_minutes || 0,
-                    sessionsCount: p?.sessions_count || 0,
-                    diffMin: 0
-                });
-            }
-        }
-
-        input.value = '';
-        fetchMessages();
-        refreshProfile(); // Сразу обновляем цифру в статистике профиля
-    };
-
-    async function fetchMessages() {
-        const { data, error } = await supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(25);
-        const chatBox = document.getElementById('chatBox');
-
-        if (error) {
-            console.error('Ошибка загрузки сообщений:', error.message);
-            chatBox.innerHTML = '<div class="empty-state">Не удалось загрузить сообщения.</div>';
-            return;
-        }
-
-        if (data) {
-            chatBox.innerHTML = data.reverse().map(m => {
-                const isMine = currentUser && m.user_id === currentUser.id;
-                const senderName = isMine ? 'Вы' : String(m.username || 'Пользователь').split(' ')[0];
-                return `
-                    <div class="chat-msg ${isMine ? 'my-message' : ''}">
-                        <b>${escapeHtml(senderName)}:</b>
-                        <span>${escapeHtml(m.text)}</span>
-                    </div>
-                `;
-            }).join('');
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-    }
-
-    const chatInput = document.getElementById('chatInput');
-    chatInput.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' && !event.shiftKey) {
-            event.preventDefault();
-            window.sendMessage();
-        }
-    });
-
-    // Инициализация системы
-    checkUser();
-
-    // Фоновое обновление данных
-    setInterval(() => {
-        fetchGroup();
-        if (currentUser) {
-            fetchMessages();
-            fetchRanking();
-            fetchAchievements();
-        }
-    }, 5000);
-</script>
-</body>
-</html>
-
-Готовый index.html собран в кодовом документе рядом с чатом. Я работал на основе твоего загруженного файла и сохранил формат одной страницы, тёмный glassmorphism-дизайн, текущую Supabase-логику и глобальные функции window.*. 
-
-
-Перед заливкой в GitHub нужно обновить Supabase. Выполни в Supabase SQL Editor:
-
-alter table profiles
-add column if not exists avatar_url text;
-
-alter table achievements
-add column if not exists description text;
-
-alter table achievements
-add column if not exists icon text;
-
-create unique index if not exists achievements_name_unique_idx
-on achievements (name);
-
-create unique index if not exists user_achievements_unique_idx
-on user_achievements (user_id, achievement_id);
-
-insert into achievements (name, icon, description)
-values
-('Первый шаг', '🚀', 'Завершить первую учебную сессию'),
-('Возвращение', '🔁', 'Завершить две учебные сессии'),
-('Стабильность', '📅', 'Завершить пять учебных сессий'),
-('Марафонец', '🏃', 'Провести одну сессию от 120 минут'),
-('Ранний старт', '🌅', 'Начать учёбу до 08:00'),
-('Активист', '💬', 'Отправить 10 сообщений в чат'),
-('Душа компании', '🤝', 'Отправить 50 сообщений в чат'),
-('Легенда', '👑', 'Накопить 1000 минут учёбы')
-on conflict (name) do update set
-icon = excluded.icon,
-description = excluded.description;
-Что изменено в готовом коде:
-
-вкладки Участники / Рейтинг / Достижения встроены в один блок мониторинга;
-
-добавлены счётчики учатся / онлайн / офлайн;
-
-Google-аватар сохраняется в profiles.avatar_url и показывается в участниках/рейтинге;
-
-свои сообщения в чате теперь уходят вправо;
-
-счётчик сессий увеличивается даже если тестовая сессия длилась меньше минуты;
-
-достижения больше не пустуют: добавлены локальные карточки и автоподгрузка из Supabase;
-
-checkUser() больше не используется для каждого мелкого обновления профиля, чтобы не плодить лишние интервалы heartbeat.
-
-
-ключи все на месте? авторизация через гугл? гиф анимация на заднем фоне?
-
-Thought for 6s
-Да, в готовом коде это сохранено.
-
-Supabase URL и ключ оставлены на месте
-В коде сохранены твои строки:
-
-const URL = 'https://rgyuyvoiovrwnrjgrnbm.supabase.co'; 
-const KEY = 'sb_publishable_HTaSDRoIFtfeisZ_08lS0g_bFp0Zlju';
-Это тот же клиентский publishable/anon ключ, который был в твоём исходном файле. 
-
-
-Авторизация через Google сохранена
-Остался вход через:
-
-supabase.auth.signInWithOAuth({ 
-    provider: 'google',
-    options: { redirectTo: window.location.href }
-});
-То есть Google OAuth я не убирал и не заменял. 
-
-
-GIF-анимация на фоне сохранена
-Фоновая GIF-ссылка осталась в body:
-
-background: #0f172a url('https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXBjNTV0YjNibXdxYW5vZ3E5d280a2l4aHNzY2Z1dnJpNzY2Y3AyciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/RJy4FQlLbxDz4kJ6GF/giphy.gif');
-Также сохранены background-size: cover, background-position: center, background-attachment: fixed. 
-
-
-Я не менял эти базовые вещи: подключение Supabase, Google-вход и космический GIF-фон остались в коде. Единственное, что нужно обязательно сделать перед запуском обновлённой версии — выполнить SQL для новых колонок и достижений в Supabase.
-
-
-Загруженное изображение
-хм
-
-Thought for 11s
-Это не ошибка кода. Это ошибка редактора: он не смог сохранить изменения в файл.
-
-Чаще всего такое бывает, если:
-
-файл открыт не в режиме редактирования;
-
-файл слишком большой или GitHub не даёт редактировать его через браузер;
-
-ты редактируешь не сам index.html, а предпросмотр/собранный файл;
-
-нет прав на запись в ветку;
-
-ветка защищена;
-
-GitHub временно не смог сохранить изменения.
-
-Самый надёжный способ сейчас:
-
-Открой репозиторий.
-
-Нажми Add file → Upload files.
-
-Загрузи новый index.html.
-
-Подтверди замену старого файла.
-
-Нажми Commit changes.
-
-Или второй вариант:
-
-Скачай проект ZIP.
-
-Замени index.html локально.
-
-Загрузи обратно через Upload files.
-
-Если хочешь, я могу сейчас дать тебе готовый index.html отдельным файлом для скачивания, чтобы ты просто загрузил его в GitHub и заменил старый.
-
-
-окей
-
-Thought for 1m 57s
-Сделал отдельные файлы для загрузки:
-
-Скачать готовый index.html
-
-Скачать SQL для Supabase
-
-Код собран на основе твоего исходного файла: ключ Supabase, Google-авторизация и GIF-фон сохранены. 
-
-
-Что делать:
-
-В Supabase открой SQL Editor и выполни supabase_update.sql.
-
-В GitHub замени старый index.html на новый файл.
-
-Сделай Commit changes.
-
-Подожди обновления GitHub Pages и проверь страницу.
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Система мониторинга учебной группы | v2.1</title>
-
+    
     <style>
         :root {
             /* Твои переменные, адаптированные под темно-синюю тему */
@@ -729,7 +15,12 @@ Thought for 1m 57s
             --bg-color: #0f172a;        /* ТЕМНО-СИНИЙ ФОН */
             --card-bg: #1e293b;         /* ТЕМНЫЕ КАРТОЧКИ */
             --text-main: #f1f5f9;       
-            --text-muted: #94a3b8;      
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(15, 23, 42, 0.58);
+            --glass-bg-light: rgba(255, 255, 255, 0.075);
+            --glass-border: rgba(255, 255, 255, 0.16);
+            --glass-shadow: 0 18px 55px rgba(0, 0, 0, 0.48);
+            --glass-blur: blur(22px) saturate(145%);      
         }
 
         /* АНИМАЦИЯ ПЕРЕД ВХОДОМ */
@@ -740,14 +31,14 @@ Thought for 1m 57s
 
        body { 
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-
+            
             /* ТВОЙ НОВЫЙ КОСМИЧЕСКИЙ ФОН */
             background: #0f172a url('https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXBjNTV0YjNibXdxYW5vZ3E5d280a2l4aHNzY2Z1dnJpNzY2Y3AyciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/RJy4FQlLbxDz4kJ6GF/giphy.gif'); 
             background-size: cover; 
             background-position: center;
             background-attachment: fixed; /* Чтобы фон не прокручивался вместе с контентом */
             background-repeat: no-repeat;
-
+            
             display: flex; 
             flex-direction: column; 
             align-items: center; 
@@ -756,40 +47,72 @@ Thought for 1m 57s
             margin: 0;
             min-height: 100vh;
             overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 50% 20%, rgba(59, 130, 246, 0.16), transparent 34%),
+                        linear-gradient(180deg, rgba(2, 6, 23, 0.12), rgba(2, 6, 23, 0.42));
+            z-index: -1;
         }
 
         /* Общий контейнер для блоков */
         .card { 
-            background: rgba(30, 41, 59, 0.8); /* Сделал фон чуть прозрачнее для эффекта стекла */
-            backdrop-filter: blur(10px); /* Размоет космос под карточкой */
-            border-radius: 16px; 
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.68), rgba(15, 23, 42, 0.46)); /* Стеклянный фон карточки */
+            backdrop-filter: var(--glass-blur); /* Размоет космос под карточкой */
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 18px; 
             padding: 28px; 
             /* ТЕНЬ ДЛЯ ТЕМНОЙ ТЕМЫ */
-            box-shadow: 0 10px 40px rgba(0,0,0,0.4); 
+            box-shadow: var(--glass-shadow), inset 0 1px 0 rgba(255,255,255,0.08); 
             width: 100%; 
             max-width: 600px; 
             margin-bottom: 25px; 
             box-sizing: border-box; 
             transition: all 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            position: relative;
+            overflow: hidden;
             /* ПРИМЕНЕНИЕ АНИМАЦИИ */
             animation: slideUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
+        .card::before {
+            content: '';
+            position: absolute;
+            left: 18px;
+            right: 18px;
+            top: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.38), transparent);
+            opacity: 0.7;
+        }
+
         .card:hover {
-            border-color: rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.42);
             transform: translateY(-2px);
+            box-shadow: 0 22px 65px rgba(0,0,0,0.54), 0 0 0 1px rgba(59,130,246,0.10), inset 0 1px 0 rgba(255,255,255,0.10);
         }
 
         h2 { margin-top: 0; font-size: 1.4rem; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
 
         /* Блок информации о профиле - ОБНОВЛЕН ПОД ПРИМЕР */
         .status-info-box { 
-            background: rgba(59, 130, 246, 0.1); 
-            border-radius: 12px; 
+            background: linear-gradient(145deg, rgba(59, 130, 246, 0.16), rgba(15, 23, 42, 0.34)); 
+            backdrop-filter: blur(16px) saturate(140%);
+            -webkit-backdrop-filter: blur(16px) saturate(140%);
+            border-radius: 14px; 
             padding: 18px; 
             margin-bottom: 20px; 
-            border-left: 5px solid var(--primary-color); 
+            border-left: 5px solid var(--primary-color);
+            border-top: 1px solid rgba(255,255,255,0.10);
+            border-right: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 12px 28px rgba(0,0,0,0.18); 
         }
 
         .profile-avatar {
@@ -816,7 +139,7 @@ Thought for 1m 57s
             object-fit: cover;
             display: block;
         }
-
+        
         /* Стили для сетки статистики в профиле */
         .stats-grid-container {
             display: grid;
@@ -826,7 +149,9 @@ Thought for 1m 57s
             text-align: center;
         }
         .stat-card {
-            background: rgba(0,0,0,0.2);
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             padding: 10px 5px;
             border-radius: 10px;
             border: 1px solid rgba(255,255,255,0.05);
@@ -839,8 +164,10 @@ Thought for 1m 57s
 
         /* Таймер учебной сессии */
         .timer-box { 
-            background: rgba(0,0,0,0.2); 
-            border-radius: 12px; 
+            background: linear-gradient(145deg, rgba(255,255,255,0.07), rgba(0,0,0,0.18)); 
+            backdrop-filter: blur(16px) saturate(130%);
+            -webkit-backdrop-filter: blur(16px) saturate(130%);
+            border-radius: 14px; 
             padding: 20px; 
             text-align: center; 
             margin-bottom: 25px; 
@@ -873,7 +200,9 @@ Thought for 1m 57s
             padding: 10px 18px; 
             border: 2px solid rgba(255,255,255,0.1); 
             border-radius: 12px; 
-            background: rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.07);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             cursor: pointer; 
             font-size: 0.95rem; 
             transition: all 0.2s ease; 
@@ -909,7 +238,9 @@ Thought for 1m 57s
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
-            background: rgba(0,0,0,0.16);
+            background: rgba(255,255,255,0.055);
+            backdrop-filter: blur(14px) saturate(135%);
+            -webkit-backdrop-filter: blur(14px) saturate(135%);
             padding: 8px;
             border-radius: 14px;
             border: 1px solid rgba(255,255,255,0.06);
@@ -950,8 +281,10 @@ Thought for 1m 57s
         }
 
         .monitor-summary-card {
-            background: rgba(0,0,0,0.2);
-            border: 1px solid rgba(255,255,255,0.06);
+            background: linear-gradient(145deg, rgba(255,255,255,0.075), rgba(0,0,0,0.18));
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.09);
             border-radius: 12px;
             padding: 11px 8px;
             text-align: center;
@@ -1002,7 +335,7 @@ Thought for 1m 57s
             font-weight: 800;
             font-size: 0.85rem;
         }
-
+        
         .online-dot { 
             width: 12px; 
             height: 12px; 
@@ -1030,14 +363,16 @@ Thought for 1m 57s
             animation: pulse 2s infinite;
         }
         @keyframes pulse { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(2.5); opacity: 0; } }
-
+        
         .username { font-weight: 600; font-size: 1.05rem; flex-grow: 1; min-width: 0; }
         .username .email-hint { display: block; font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .user-meta { text-align: right; margin-left: 12px; }
         .status-tag { 
             font-size: 0.8rem; 
             color: var(--text-muted); 
-            background: rgba(255,255,255,0.05); 
+            background: rgba(255,255,255,0.075); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             padding: 5px 12px; 
             border-radius: 20px; 
             border: 1px solid rgba(255,255,255,0.1); 
@@ -1056,7 +391,7 @@ Thought for 1m 57s
             border-bottom: 1px solid rgba(255,255,255,0.05); 
             transition: 0.3s;
         }
-        .rank-row:hover { background: rgba(255,255,255,0.02); }
+        .rank-row:hover { background: rgba(255,255,255,0.06); border-radius: 12px; }
         .rank-avatar {
             width: 38px; height: 38px; border-radius: 50%;
             background: var(--card-bg); border: 1px solid var(--primary-color);
@@ -1067,7 +402,7 @@ Thought for 1m 57s
         }
 
         .ach-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 15px; }
-        .ach-item { background: rgba(0,0,0,0.2); padding: 12px 10px; border-radius: 12px; text-align: center; border: 1px solid transparent; opacity: 0.34; transition: 0.5s; min-height: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .ach-item { background: linear-gradient(145deg, rgba(255,255,255,0.06), rgba(0,0,0,0.18)); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); padding: 12px 10px; border-radius: 12px; text-align: center; border: 1px solid transparent; opacity: 0.34; transition: 0.5s; min-height: 96px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .ach-item.unlocked { opacity: 1; border-color: var(--warning-color); background: rgba(255,193,7,0.05); box-shadow: 0 8px 18px rgba(255,193,7,0.08); }
         .ach-item .ach-icon { font-size: 1.7rem; line-height: 1; }
         .ach-item .ach-name { font-size: 0.72rem; font-weight: bold; margin-top: 7px; }
@@ -1086,8 +421,10 @@ Thought for 1m 57s
         #chatBox { 
             height: 220px; 
             overflow-y: auto; 
-            background: rgba(0,0,0,0.2); 
-            border: 1px solid rgba(255,255,255,0.1); 
+            background: rgba(15, 23, 42, 0.42); 
+            backdrop-filter: blur(14px) saturate(130%);
+            -webkit-backdrop-filter: blur(14px) saturate(130%);
+            border: 1px solid rgba(255,255,255,0.14); 
             padding: 15px; 
             border-radius: 12px; 
             margin-bottom: 15px; 
@@ -1097,8 +434,10 @@ Thought for 1m 57s
         }
         .chat-msg { 
             padding: 8px 15px; 
-            background: rgba(59, 130, 246, 0.1); 
-            border-radius: 10px; 
+            background: rgba(59, 130, 246, 0.14); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 12px; 
             align-self: flex-start; 
             max-width: 80%; 
             font-size: 0.95rem;
@@ -1114,14 +453,16 @@ Thought for 1m 57s
             text-align: right;
         }
         .chat-msg.my-message b { color: #86efac; }
-
+        
         .chat-input-container { display: flex; gap: 10px; }
         #chatInput { 
             flex-grow: 1; 
             padding: 12px; 
             border-radius: 10px; 
             border: 1px solid rgba(255,255,255,0.1); 
-            background: rgba(255,255,255,0.05); 
+            background: rgba(255,255,255,0.075); 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             color: white; 
             outline: none; 
         }
@@ -1215,13 +556,38 @@ Thought for 1m 57s
     const URL = 'https://rgyuyvoiovrwnrjgrnbm.supabase.co'; 
     const KEY = 'sb_publishable_HTaSDRoIFtfeisZ_08lS0g_bFp0Zlju'; 
     const supabase = createClient(URL, KEY);
-
+    
     let currentUser = null;         // Текущий авторизованный объект пользователя
     let currentProfile = null;      // Локальный кэш профиля из таблицы profiles
     let tempStatus = { text: '' };  // Временное хранилище выбранного статуса
     let timerInterval = null;       // Ссылка на интервал локального таймера
     let heartbeatInterval = null;   // Ссылка на интервал статуса онлайн
     let currentMonitorTab = 'participants';
+
+    function ensureMonitorTabsVisible() {
+        const monitorCard = document.getElementById('monitorCard');
+        const monitorTabs = document.getElementById('monitorTabs');
+        const participantsPane = document.getElementById('participantsPane');
+
+        if (monitorCard) monitorCard.style.display = 'block';
+        if (monitorTabs) monitorTabs.style.display = 'grid';
+
+        document.querySelectorAll('.monitor-tab').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === currentMonitorTab);
+        });
+
+        document.querySelectorAll('.monitor-pane').forEach(pane => {
+            pane.classList.remove('active');
+        });
+
+        const activePane = document.getElementById(`${currentMonitorTab}Pane`);
+        if (activePane) {
+            activePane.classList.add('active');
+        } else if (participantsPane) {
+            currentMonitorTab = 'participants';
+            participantsPane.classList.add('active');
+        }
+    }
 
     const ACHIEVEMENT_DEFINITIONS = [
         { name: 'Первый шаг', icon: '🚀', description: 'Завершить первую учебную сессию' },
@@ -1390,7 +756,7 @@ Thought for 1m 57s
             </div>
 
             <div class="info-row" style="margin-top: 15px; font-size: 0.85rem;">📌 Статус: <span id="currentStatusText">${escapeHtml(profile?.status || 'не установлен')}</span></div>
-
+            
             <button id="logoutBtn" style="background:none; border:none; color:var(--danger-color); cursor:pointer; font-size:12px; margin-top:10px; text-decoration:underline; width: 100%; text-align: right;">Выйти из системы</button>
         `;
 
@@ -1411,12 +777,12 @@ Thought for 1m 57s
             currentUser = data.user;
             const name = getDisplayName();
             const avatarUrl = getAvatarUrl();
-
+            
             // Активация интерфейса для авторизованных
             document.getElementById('sessionUI').style.display = 'block';
             document.getElementById('chatSection').style.display = 'block'; 
-            document.getElementById('monitorCard').style.display = 'block';
-
+            ensureMonitorTabsVisible();
+            
             // Регистрация/Обновление профиля в БД, включая Google-аватар
             const { error: upsertError } = await supabase.from('profiles').upsert({ 
                 id: currentUser.id, 
@@ -1438,7 +804,7 @@ Thought for 1m 57s
             fetchMessages(); 
             fetchRanking();      
             fetchAchievements();  
-
+            
             // ТЕХНИЧЕСКИЙ ХАРТБИТ: Обновление времени активности
             updateHeartbeat(); 
             if (!heartbeatInterval) {
@@ -1453,6 +819,8 @@ Thought for 1m 57s
             `;
             document.getElementById('sessionUI').style.display = 'none';
             document.getElementById('chatSection').style.display = 'none';
+            currentMonitorTab = 'participants';
+            ensureMonitorTabsVisible();
             document.getElementById('groupList').innerHTML = '<div class="empty-state">Авторизуйтесь через Google, чтобы увидеть участников группы.</div>';
             document.getElementById('rankList').innerHTML = '<div class="empty-state">Рейтинг доступен после входа.</div>';
             document.getElementById('achList').innerHTML = ACHIEVEMENT_DEFINITIONS.map(a => `
@@ -1566,7 +934,7 @@ Thought for 1m 57s
                     }).eq('id', currentUser.id);
 
                     if (startError) throw startError;
-
+                    
                     if (now.getHours() < 8) await grantAchievement('Ранний старт');
 
                     runLocalTimer(startTime);
@@ -1705,7 +1073,7 @@ Thought for 1m 57s
         btn.innerText = '⏹ Завершить период';
         btn.classList.remove('btn-start');
         btn.classList.add('btn-stop');
-
+        
         clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             const diff = Math.floor((new Date() - new Date(startTime)) / 1000);
