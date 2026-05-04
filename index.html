@@ -353,52 +353,70 @@
      * МОДУЛЬ ТАЙМЕРА: Работа с учебными сессиями + сохранение накопленного времени
      */
     async function initSessionLogic() {
-        const btn = document.getElementById('toggleSessionBtn');
-        const { data } = await supabase.from('profiles').select('is_studying, session_start').eq('id', currentUser.id).single();
-        
-        if (data?.is_studying && data.session_start) {
-            runLocalTimer(data.session_start);
-        }
+    const btn = document.getElementById('toggleSessionBtn');
+    const timerDisp = document.getElementById('timerDisplay');
 
-        btn.onclick = async () => {
+    // Подгружаем состояние при входе
+    const { data: profile } = await supabase.from('profiles')
+        .select('is_studying, session_start')
+        .eq('id', currentUser.id)
+        .single();
+
+    if (profile?.is_studying && profile.session_start) {
+        runLocalTimer(profile.session_start);
+    }
+
+    btn.onclick = async () => {
+        if (btn.disabled) return; // Защита от спама кликами
+        btn.disabled = true;
+
+        try {
             const isStarting = btn.classList.contains('btn-start');
             const now = new Date();
-            const startTime = isStarting ? now.toISOString() : null;
 
-            // Логика сохранения минут при нажатии кнопки "Завершить"
             if (!isStarting) {
-                const { data: prof } = await supabase.from('profiles').select('session_start, total_study_minutes').eq('id', currentUser.id).single();
-                if (prof.session_start) {
-                    const diffMin = Math.floor((now - new Date(prof.session_start)) / 60000);
+                // ОСТАНАВЛИВАЕМ ВСЁ СРАЗУ (не дожидаясь ответа базы)
+                clearInterval(timerInterval);
+                timerDisp.innerText = "00:00:00";
+                btn.innerText = "▶ Начать период учебы";
+                btn.classList.replace('btn-stop', 'btn-start');
+
+                // А теперь спокойно сохраняем данные в фоне
+                const { data: p } = await supabase.from('profiles')
+                    .select('session_start, total_study_minutes')
+                    .eq('id', currentUser.id)
+                    .single();
+
+                if (p?.session_start) {
+                    const diffMin = Math.floor((now - new Date(p.session_start)) / 60000);
                     if (diffMin > 0) {
-                        const newTotal = (prof.total_study_minutes || 0) + diffMin;
+                        const newTotal = (p.total_study_minutes || 0) + diffMin;
                         await supabase.from('profiles').update({ total_study_minutes: newTotal }).eq('id', currentUser.id);
-                        
-                        // Проверка на ачивку Марафонец (более 2 часов за раз)
                         if (diffMin >= 120) await grantAchievement('Марафонец');
                     }
                 }
-            } else {
-                // Проверка на Раннюю пташку (старт до 8:00)
-                if (now.getHours() < 8) await grantAchievement('Ранняя пташка');
-            }
-            
-            const { error } = await supabase.from('profiles').update({
-                is_studying: isStarting,
-                session_start: startTime
-            }).eq('id', currentUser.id);
 
-            if (!error) {
-                if (isStarting) runLocalTimer(startTime);
-                else {
-                    clearInterval(timerInterval);
-                    document.getElementById('timerDisplay').innerText = "00:00:00";
-                    btn.innerText = "▶ Начать период учебы";
-                    btn.classList.replace('btn-stop', 'btn-start');
-                }
+                await supabase.from('profiles').update({ is_studying: false, session_start: null }).eq('id', currentUser.id);
+                if (typeof fetchRanking === 'function') fetchRanking();
+
+            } else {
+                // СТАРТ
+                const startTime = now.toISOString();
+                await supabase.from('profiles').update({ is_studying: true, session_start: startTime }).eq('id', currentUser.id);
+                
+                if (now.getHours() < 8) await grantAchievement('Ранняя пташка');
+
+                runLocalTimer(startTime);
+                btn.innerText = "⏹ Завершить период";
+                btn.classList.replace('btn-start', 'btn-stop');
             }
-        };
-    }
+        } catch (e) {
+            console.error("Ошибка сессии:", e);
+        } finally {
+            btn.disabled = false;
+        }
+    };
+}
 
     // Вспомогательная функция для ачивок
     async function grantAchievement(name) {
