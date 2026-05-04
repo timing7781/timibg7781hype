@@ -24,11 +24,16 @@
             100% { opacity: 1; transform: translateY(0); filter: blur(0); }
         }
 
-        body { 
+       body { 
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            background-color: var(--bg-color); 
-            /* ГРАДИЕНТ НА ФОНЕ */
-            background-image: radial-gradient(circle at 50% -20%, #1e3a8a, #0f172a);
+            
+            /* ТВОЙ НОВЫЙ КОСМИЧЕСКИЙ ФОН */
+            background: #0f172a url('https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXBjNTV0YjNibXdxYW5vZ3E5d280a2l4aHNzY2Z1dnJpNzY2Y3AyciZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/RJy4FQlLbxDz4kJ6GF/giphy.gif'); 
+            background-size: cover; 
+            background-position: center;
+            background-attachment: fixed; /* Чтобы фон не прокручивался вместе с контентом */
+            background-repeat: no-repeat;
+            
             display: flex; 
             flex-direction: column; 
             align-items: center; 
@@ -36,11 +41,13 @@
             color: var(--text-main);
             margin: 0;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         /* Общий контейнер для блоков */
         .card { 
-            background: var(--card-bg); 
+            background: rgba(30, 41, 59, 0.8); /* Сделал фон чуть прозрачнее для эффекта стекла */
+            backdrop-filter: blur(10px); /* Размоет космос под карточкой */
             border-radius: 16px; 
             padding: 28px; 
             /* ТЕНЬ ДЛЯ ТЕМНОЙ ТЕМЫ */
@@ -62,7 +69,7 @@
 
         h2 { margin-top: 0; font-size: 1.4rem; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; }
 
-        /* Блок информации о профиле */
+        /* Блок информации о профиле - ОБНОВЛЕН ПОД ПРИМЕР */
         .status-info-box { 
             background: rgba(59, 130, 246, 0.1); 
             border-radius: 12px; 
@@ -70,6 +77,24 @@
             margin-bottom: 20px; 
             border-left: 5px solid var(--primary-color); 
         }
+        
+        /* Стили для сетки статистики в профиле */
+        .stats-grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .stat-card {
+            background: rgba(0,0,0,0.2);
+            padding: 10px 5px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .stat-card b { display: block; font-size: 1.1rem; color: var(--primary-color); }
+        .stat-card span { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; }
+
         .info-row { display: flex; align-items: center; gap: 10px; font-size: 1rem; margin: 6px 0; }
         .info-row b { color: var(--primary-color); }
 
@@ -181,7 +206,22 @@
         .session-tag { display: block; font-size: 0.75rem; color: var(--primary-color); margin-top: 4px; font-weight: 700; }
 
         /* ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ РЕЙТИНГА И АЧИВОК */
-        .rank-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .rank-row { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
+            padding: 12px; 
+            border-bottom: 1px solid rgba(255,255,255,0.05); 
+            transition: 0.3s;
+        }
+        .rank-row:hover { background: rgba(255,255,255,0.02); }
+        .rank-avatar {
+            width: 35px; height: 35px; border-radius: 50%;
+            background: var(--card-bg); border: 1px solid var(--primary-color);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 0.8rem;
+        }
+
         .ach-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-top: 15px; }
         .ach-item { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid transparent; opacity: 0.3; transition: 0.5s; }
         .ach-item.unlocked { opacity: 1; border-color: var(--warning-color); background: rgba(255,193,7,0.05); }
@@ -216,8 +256,8 @@
             padding: 12px; 
             border-radius: 10px; 
             border: 1px solid rgba(255,255,255,0.1); 
-            background: rgba(255,255,255,0.05);
-            color: white;
+            background: rgba(255,255,255,0.05); 
+            color: white; 
             outline: none; 
         }
         .btn-send { 
@@ -250,7 +290,7 @@
         <div class="status-grid" id="statusPicker">
             <div class="status-option" onclick="prepStatus(this, '🟢 Онлайн')">🟢 Онлайн</div>
             <div class="status-option" onclick="prepStatus(this, '☕ Отошёл')">☕ Отошёл</div>
-            <div class="status-option" onclick="prepStatus(this, '🔴 Не беспокоить')">🔴 Занят</div>
+            <div class="status-option" onclick="prepStatus(this, '🔴 Занят')">🔴 Занят</div>
             <div class="status-option" onclick="prepStatus(this, '🍜 Обед')">🍜 Обед</div>
         </div>
         <button class="btn-save" onclick="applyStatus()">Обновить мой статус</button>
@@ -302,16 +342,51 @@
 
         if (data?.user) {
             currentUser = data.user;
+            
             // Активация интерфейса для авторизованных
             document.getElementById('sessionUI').style.display = 'block';
             document.getElementById('chatSection').style.display = 'block'; 
             document.getElementById('rankCard').style.display = 'block';
             document.getElementById('achCard').style.display = 'block';
             
+            // Получаем расширенную статистику для профиля
+            const { data: profile } = await supabase.from('profiles').select('*').eq('id', currentUser.id).single();
+            const name = currentUser.user_metadata.full_name || currentUser.email;
+
+            // ОБНОВЛЕННЫЙ ВИД ПРОФИЛЯ С КАРТОЧКАМИ СТАТИСТИКИ
             infoBox.innerHTML = `
-                <div class="info-row">👨‍🎓 Пользователь: <b>${currentUser.user_metadata.full_name || currentUser.email}</b></div>
-                <div class="info-row">📌 Текущий статус: <span id="currentStatusText">загрузка...</span></div>
-                <button id="logoutBtn" style="background:none; border:none; color:var(--danger-color); cursor:pointer; font-size:12px; margin-top:10px; text-decoration:underline;">Выйти из системы</button>
+                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                    <div style="width: 50px; height: 50px; background: var(--primary-color); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold;">
+                        ${name[0].toUpperCase()}
+                    </div>
+                    <div>
+                        <div style="font-weight: bold;">${name}</div>
+                        <div style="font-size: 0.8rem; color: var(--success-color);">● В системе</div>
+                    </div>
+                </div>
+
+                <div class="stats-grid-container">
+                    <div class="stat-card">
+                        <b>${Math.floor((profile?.total_study_minutes || 0) / 60)}ч</b>
+                        <span>Учёба</span>
+                    </div>
+                    <div class="stat-card">
+                        <b>${profile?.sessions_count || 0}</b>
+                        <span>Сессий</span>
+                    </div>
+                    <div class="stat-card">
+                        <b>${profile?.messages_count || 0}</b>
+                        <span>Сообщ.</span>
+                    </div>
+                    <div class="stat-card">
+                        <b>2</b>
+                        <span>Ачивки</span>
+                    </div>
+                </div>
+
+                <div class="info-row" style="margin-top: 15px; font-size: 0.85rem;">📌 Статус: <span id="currentStatusText">${profile?.status || 'не установлен'}</span></div>
+                
+                <button id="logoutBtn" style="background:none; border:none; color:var(--danger-color); cursor:pointer; font-size:12px; margin-top:10px; text-decoration:underline; width: 100%; text-align: right;">Выйти из системы</button>
             `;
 
             document.getElementById('logoutBtn').onclick = async () => {
@@ -322,15 +397,15 @@
             // Регистрация/Обновление профиля в БД
             await supabase.from('profiles').upsert({ 
                 id: currentUser.id, 
-                username: currentUser.user_metadata.full_name || currentUser.email 
+                username: name
             });
 
             // Запуск логики модулей
             initSessionLogic();
             fetchGroup();
             fetchMessages(); 
-            fetchRanking();      // Новое
-            fetchAchievements();  // Новое
+            fetchRanking();      
+            fetchAchievements();  
             
             // ТЕХНИЧЕСКИЙ ХАРТБИТ: Обновление времени активности
             updateHeartbeat(); 
@@ -353,70 +428,76 @@
      * МОДУЛЬ ТАЙМЕРА: Работа с учебными сессиями + сохранение накопленного времени
      */
     async function initSessionLogic() {
-    const btn = document.getElementById('toggleSessionBtn');
-    const timerDisp = document.getElementById('timerDisplay');
+        const btn = document.getElementById('toggleSessionBtn');
+        const timerDisp = document.getElementById('timerDisplay');
 
-    // Подгружаем состояние при входе
-    const { data: profile } = await supabase.from('profiles')
-        .select('is_studying, session_start')
-        .eq('id', currentUser.id)
-        .single();
+        // Подгружаем состояние при входе
+        const { data: profile } = await supabase.from('profiles')
+            .select('is_studying, session_start')
+            .eq('id', currentUser.id)
+            .single();
 
-    if (profile?.is_studying && profile.session_start) {
-        runLocalTimer(profile.session_start);
-    }
-
-    btn.onclick = async () => {
-        if (btn.disabled) return; // Защита от спама кликами
-        btn.disabled = true;
-
-        try {
-            const isStarting = btn.classList.contains('btn-start');
-            const now = new Date();
-
-            if (!isStarting) {
-                // ОСТАНАВЛИВАЕМ ВСЁ СРАЗУ (не дожидаясь ответа базы)
-                clearInterval(timerInterval);
-                timerDisp.innerText = "00:00:00";
-                btn.innerText = "▶ Начать период учебы";
-                btn.classList.replace('btn-stop', 'btn-start');
-
-                // А теперь спокойно сохраняем данные в фоне
-                const { data: p } = await supabase.from('profiles')
-                    .select('session_start, total_study_minutes')
-                    .eq('id', currentUser.id)
-                    .single();
-
-                if (p?.session_start) {
-                    const diffMin = Math.floor((now - new Date(p.session_start)) / 60000);
-                    if (diffMin > 0) {
-                        const newTotal = (p.total_study_minutes || 0) + diffMin;
-                        await supabase.from('profiles').update({ total_study_minutes: newTotal }).eq('id', currentUser.id);
-                        if (diffMin >= 120) await grantAchievement('Марафонец');
-                    }
-                }
-
-                await supabase.from('profiles').update({ is_studying: false, session_start: null }).eq('id', currentUser.id);
-                if (typeof fetchRanking === 'function') fetchRanking();
-
-            } else {
-                // СТАРТ
-                const startTime = now.toISOString();
-                await supabase.from('profiles').update({ is_studying: true, session_start: startTime }).eq('id', currentUser.id);
-                
-                if (now.getHours() < 8) await grantAchievement('Ранняя пташка');
-
-                runLocalTimer(startTime);
-                btn.innerText = "⏹ Завершить период";
-                btn.classList.replace('btn-start', 'btn-stop');
-            }
-        } catch (e) {
-            console.error("Ошибка сессии:", e);
-        } finally {
-            btn.disabled = false;
+        if (profile?.is_studying && profile.session_start) {
+            runLocalTimer(profile.session_start);
         }
-    };
-}
+
+        btn.onclick = async () => {
+            if (btn.disabled) return; // Защита от спама кликами
+            btn.disabled = true;
+
+            try {
+                const isStarting = btn.classList.contains('btn-start');
+                const now = new Date();
+
+                if (!isStarting) {
+                    // ОСТАНАВЛИВАЕМ ВСЁ СРАЗУ (не дожидаясь ответа базы)
+                    clearInterval(timerInterval);
+                    timerDisp.innerText = "00:00:00";
+                    btn.innerText = "▶ Начать период учебы";
+                    btn.classList.replace('btn-stop', 'btn-start');
+
+                    // А теперь спокойно сохраняем данные в фоне
+                    const { data: p } = await supabase.from('profiles')
+                        .select('session_start, total_study_minutes, sessions_count')
+                        .eq('id', currentUser.id)
+                        .single();
+
+                    if (p?.session_start) {
+                        const diffMin = Math.floor((now - new Date(p.session_start)) / 60000);
+                        if (diffMin > 0) {
+                            const newTotal = (p.total_study_minutes || 0) + diffMin;
+                            const newSessions = (p.sessions_count || 0) + 1;
+                            await supabase.from('profiles').update({ 
+                                total_study_minutes: newTotal,
+                                sessions_count: newSessions
+                            }).eq('id', currentUser.id);
+                            
+                            if (diffMin >= 120) await grantAchievement('Марафонец');
+                        }
+                    }
+
+                    await supabase.from('profiles').update({ is_studying: false, session_start: null }).eq('id', currentUser.id);
+                    if (typeof fetchRanking === 'function') fetchRanking();
+                    checkUser(); // Обновить статистику в профиле
+
+                } else {
+                    // СТАРТ
+                    const startTime = now.toISOString();
+                    await supabase.from('profiles').update({ is_studying: true, session_start: startTime }).eq('id', currentUser.id);
+                    
+                    if (now.getHours() < 8) await grantAchievement('Ранняя пташка');
+
+                    runLocalTimer(startTime);
+                    btn.innerText = "⏹ Завершить период";
+                    btn.classList.replace('btn-start', 'btn-stop');
+                }
+            } catch (e) {
+                console.error("Ошибка сессии:", e);
+            } finally {
+                btn.disabled = false;
+            }
+        };
+    }
 
     // Вспомогательная функция для ачивок
     async function grantAchievement(name) {
@@ -425,20 +506,26 @@
         fetchAchievements();
     }
 
-    // НОВОЕ: Загрузка рейтинга из View
+    // ОБНОВЛЕННЫЙ РЕЙТИНГ С АВАТАРКАМИ
     async function fetchRanking() {
-        const { data } = await supabase.from('top_students').select('*').limit(5);
+        const { data } = await supabase.from('profiles').select('*').order('total_study_minutes', { ascending: false }).limit(5);
         if (data) {
+            const medals = ['🥇', '🥈', '🥉', '4', '5'];
             document.getElementById('rankList').innerHTML = data.map((s, i) => `
                 <div class="rank-row">
-                    <span>${i+1}. ${s.username}</span>
-                    <b>${s.total_study_minutes || 0} мин</b>
+                    <div style="width: 25px; font-weight: bold; color: var(--primary-color);">${medals[i]}</div>
+                    <div class="rank-avatar">${s.username[0].toUpperCase()}</div>
+                    <div style="flex-grow: 1;">
+                        <div style="font-weight: 600; font-size: 0.9rem;">${s.username}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted);">${s.sessions_count || 0} сессий</div>
+                    </div>
+                    <b style="color: var(--success-color);">${s.total_study_minutes || 0} мин</b>
                 </div>
             `).join('');
         }
     }
 
-    // НОВОЕ: Загрузка ачивок
+    // Загрузка ачивок
     async function fetchAchievements() {
         const { data: all } = await supabase.from('achievements').select('*');
         const { data: my } = await supabase.from('user_achievements').select('achievement_id').eq('user_id', currentUser.id);
@@ -486,6 +573,7 @@
         if (!currentUser || !tempStatus.text) return;
         await supabase.from('profiles').update({ status: tempStatus.text }).eq('id', currentUser.id);
         fetchGroup();
+        checkUser(); // Обновить текст статуса в профиле
     };
 
     async function fetchGroup() {
@@ -513,11 +601,6 @@
                 </div>
             `;
         }).join('');
-
-        if (currentUser) {
-            const me = data.find(u => u.id === currentUser.id);
-            if (me) document.getElementById('currentStatusText').innerText = me.status || 'не установлен';
-        }
     }
 
     window.sendMessage = async () => {
@@ -525,13 +608,20 @@
         const text = input.value.trim();
         if (!text || !currentUser) return;
 
+        // Отправка сообщения
         await supabase.from('messages').insert({
             user_id: currentUser.id,
             username: currentUser.user_metadata.full_name || currentUser.email,
             text: text
         });
+
+        // Обновление счетчика сообщений в профиле (инкремент)
+        const { data: p } = await supabase.from('profiles').select('messages_count').eq('id', currentUser.id).single();
+        await supabase.from('profiles').update({ messages_count: (p?.messages_count || 0) + 1 }).eq('id', currentUser.id);
+
         input.value = '';
         fetchMessages();
+        checkUser(); // Сразу обновляем цифру в статистике профиля
     };
 
     async function fetchMessages() {
