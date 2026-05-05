@@ -633,10 +633,67 @@
         return `<div class="${className}">${escapeHtml(getInitials(name))}</div>`;
     }
 
+    function pluralRu(number, forms) {
+        const n = Math.abs(Number(number || 0));
+        const lastTwo = n % 100;
+        const lastOne = n % 10;
+
+        if (lastTwo >= 11 && lastTwo <= 14) return forms[2];
+        if (lastOne === 1) return forms[0];
+        if (lastOne >= 2 && lastOne <= 4) return forms[1];
+        return forms[2];
+    }
+
+    function formatTimeCompact(minutes) {
+        const totalMinutes = Math.max(0, Math.floor(Number(minutes || 0)));
+
+        if (totalMinutes < 1) return '0 мин';
+        if (totalMinutes < 60) return `${totalMinutes} мин`;
+
+        const hours = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+
+        if (hours < 24) {
+            return mins > 0 ? `${hours} ч ${mins} мин` : `${hours} ч`;
+        }
+
+        const days = Math.floor(hours / 24);
+        const restHours = hours % 24;
+        return restHours > 0 ? `${days} д ${restHours} ч` : `${days} д`;
+    }
+
+    function formatTimePhrase(minutes) {
+        const totalMinutes = Math.max(0, Math.floor(Number(minutes || 0)));
+
+        if (totalMinutes < 1) return 'меньше минуты';
+        if (totalMinutes < 60) {
+            return `${totalMinutes} ${pluralRu(totalMinutes, ['минута', 'минуты', 'минут'])}`;
+        }
+
+        const hours = Math.floor(totalMinutes / 60);
+        const mins = totalMinutes % 60;
+
+        if (hours < 24) {
+            const hourText = `${hours} ${pluralRu(hours, ['час', 'часа', 'часов'])}`;
+            const minuteText = mins > 0 ? ` ${mins} ${pluralRu(mins, ['минута', 'минуты', 'минут'])}` : '';
+            return `${hourText}${minuteText}`;
+        }
+
+        const days = Math.floor(hours / 24);
+        const restHours = hours % 24;
+        const dayText = `${days} ${pluralRu(days, ['день', 'дня', 'дней'])}`;
+        const hourText = restHours > 0 ? ` ${restHours} ${pluralRu(restHours, ['час', 'часа', 'часов'])}` : '';
+        return `${dayText}${hourText}`;
+    }
+
+    function formatLastSeen(minutes) {
+        const totalMinutes = Math.max(0, Math.floor(Number(minutes || 0)));
+        if (totalMinutes < 1) return 'был только что';
+        return `был ${formatTimePhrase(totalMinutes)} назад`;
+    }
+
     function formatStudyHours(minutes) {
-        const safeMinutes = Number(minutes || 0);
-        if (safeMinutes < 60) return `${safeMinutes}м`;
-        return `${Math.floor(safeMinutes / 60)}ч`;
+        return formatTimeCompact(minutes);
     }
 
     function isRecentlyOnline(user) {
@@ -1032,7 +1089,7 @@
                         <div style="font-weight: 600; font-size: 0.9rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(username)}</div>
                         <div style="font-size: 0.7rem; color: var(--text-muted);">${s.sessions_count || 0} сессий</div>
                     </div>
-                    <b style="color: var(--success-color); white-space:nowrap;">${s.total_study_minutes || 0} мин</b>
+                    <b style="color: var(--success-color); white-space:nowrap;">${formatTimeCompact(s.total_study_minutes || 0)}</b>
                 </div>
             `;
         }).join('');
@@ -1172,10 +1229,10 @@
 
             if (user.is_studying && user.session_start) {
                 const diffMin = Math.max(0, Math.floor((new Date() - new Date(user.session_start)) / 60000));
-                studyTag = `<span class="session-tag">📖 В учебе: ${diffMin} мин</span>`;
+                studyTag = `<span class="session-tag">📖 В учебе: ${formatTimePhrase(diffMin)}</span>`;
             } else if (!online && user.last_seen) {
                 const diffMin = Math.max(0, Math.floor((new Date() - new Date(user.last_seen)) / 60000));
-                studyTag = `<span class="session-tag" style="color: var(--text-muted);">был ${diffMin} мин назад</span>`;
+                studyTag = `<span class="session-tag" style="color: var(--text-muted);">${formatLastSeen(diffMin)}</span>`;
             }
 
             return `
