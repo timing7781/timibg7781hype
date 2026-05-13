@@ -485,7 +485,39 @@
             .user-item { align-items: flex-start; }
             .chat-msg { max-width: 88%; }
         }
-    </style>
+/* --- Стили для индикатора печати и реакций --- */
+/* Анимация розовых точек */
+/* --- СТИЛИ ДЛЯ РОЗОВЫХ ТОЧЕК --- */
+.typing-bubble {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 10px;
+    border-radius: 12px 12px 12px 4px;
+    width: fit-content;
+}
+.typing-dots { display: flex; gap: 4px; }
+.typing-dots span {
+    width: 6px; height: 6px;
+    background: #ff4d94; /* Розовый */
+    border-radius: 50%;
+    animation: typing-blink 1.4s infinite;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing-blink {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1.2); }
+}    
+.reaction-badge {
+    margin-top: 6px;
+    font-size: 0.8rem;
+    opacity: 0.9;
+}
+
+#typingBubble {
+    width: fit-content;
+}
+</style>
 </head>
 <body>
 
@@ -540,22 +572,35 @@
     </div>
 
     <div class="card" id="chatSection" style="display:none;">
-        <h2>💬 Корпоративный чат</h2>
-        <div id="chatBox">Поиск последних сообщений...</div>
-        <div class="chat-input-container">
-            <input type="text" id="chatInput" placeholder="Введите сообщение...">
-            <button class="btn-send" onclick="window.sendMessage()">➡</button>
+    <h2>💬 Корпоративный чат</h2>
+
+    <div id="chatBox"></div>
+
+    <div id="typingBubble" class="typing-bubble" style="display:none; margin-top:10px;">
+        <div style="font-size: 0.7rem; color: #94a3b8; margin-bottom: 4px;" id="typingUser">
+            Кто-то печатает
+        </div>
+
+        <div class="typing-dots">
+            <span></span>
+            <span></span>
+            <span></span>
         </div>
     </div>
-    <div id="typingIndicator" style="font-size: 0.8rem; color: #3b82f6; height: 20px; font-style: italic;"></div>
 
-<div class="reaction-bar" style="display: flex; gap: 8px; margin-bottom: 10px;">
-    <button class="reaction-btn" onclick="window.sendReaction('👍')">👍</button>
-    <button class="reaction-btn" onclick="window.sendReaction('👎')">👎</button>
-    <button class="reaction-btn" onclick="window.sendReaction('🔥')">🔥</button>
-    <button class="reaction-btn" onclick="window.sendReaction('😱')">😱</button>
+    <div class="reaction-bar" style="display: flex; gap: 8px; margin-bottom: 10px; justify-content: center; margin-top: 12px;">
+        <button class="status-option" style="padding: 5px 12px;" onclick="window.sendReaction('👍')">👍</button>
+        <button class="status-option" style="padding: 5px 12px;" onclick="window.sendReaction('🔥')">🔥</button>
+        <button class="status-option" style="padding: 5px 12px;" onclick="window.sendReaction('❤️')">❤️</button>
+        <button class="status-option" style="padding: 5px 12px;" onclick="window.sendReaction('👏')">👏</button>
+    </div>
+
+    <div class="chat-input-container">
+        <input type="text" id="chatInput" placeholder="Введите сообщение...">
+        <button class="btn-send" onclick="window.sendMessage()">➡</button>
+    </div>
 </div>
-
+    
 <script type="module">
     // Интеграция с Supabase SDK через ESM
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
@@ -875,28 +920,8 @@
             updateHeartbeat(); 
             if (!heartbeatInterval) {
                 heartbeatInterval = setInterval(updateHeartbeat, 30000); // Каждые 30 сек подтверждаем онлайн
-            }
+            } 
 
-            supabase.channel('chat_room')
-    // 1. Слушаем, кто печатает
-    .on('broadcast', { event: 'typing' }, (payload) => {
-        const el = document.getElementById('typingIndicator');
-        el.innerText = payload.payload.isTyping ? `✍️ ${payload.payload.user} печатает...` : '';
-    })
-    // 2. Слушаем реакции
-    .on('broadcast', { event: 'reaction_event' }, (payload) => {
-        const chatBox = document.getElementById('chatBox');
-        const note = document.createElement('div');
-        note.style.cssText = 'font-size: 0.8rem; text-align: center; color: #3b82f6; background: rgba(255,255,255,0.05); border-radius: 20px; padding: 4px; margin: 5px 0;';
-        note.innerHTML = `${payload.payload.user} отправил: ${payload.payload.emoji}`;
-        
-        chatBox.appendChild(note);
-        chatBox.scrollTop = chatBox.scrollHeight;
-        
-        // Удаляем надпись о реакции через 3 секунды, чтобы не мешала
-        setTimeout(() => note.remove(), 3000);
-    })
-    .subscribe();
         } else {
             // Интерфейс для гостей (OAuth Google)
             infoBox.innerHTML = `
@@ -1282,15 +1307,7 @@
             `;
         }).join('');
     }
-    window.sendReaction = async (emoji) => {
-    if (!currentUser) return; // Добавил проверку, чтобы не падало без входа
-    const channel = supabase.channel('chat_room');
-    await channel.send({
-        type: 'broadcast',
-        event: 'reaction_event',
-        payload: { user: getDisplayName(), emoji: emoji }
-    });
-};
+    
     window.sendMessage = async () => {
         const input = document.getElementById('chatInput');
         const text = input.value.trim();
@@ -1342,80 +1359,167 @@
     };
 
     async function fetchMessages() {
-        const { data, error } = await supabase.from('messages').select('*').order('created_at', { ascending: false }).limit(25);
+    const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(25);
+
+    const chatBox = document.getElementById('chatBox');
+
+    if (error) {
+        console.error('Ошибка загрузки сообщений:', error.message);
+        chatBox.innerHTML = '<div class="empty-state">Не удалось загрузить сообщения.</div>';
+        return;
+    }
+
+    if (data) {
+        chatBox.innerHTML = data.reverse().map(m => {
+            const isMine = currentUser && m.user_id === currentUser.id;
+            const senderName = isMine
+                ? 'Вы'
+                : String(m.username || 'Пользователь').split(' ')[0];
+
+            return `
+                <div class="chat-msg ${isMine ? 'my-message' : ''}">
+                    <b>${escapeHtml(senderName)}:</b>
+                    <span>${escapeHtml(m.text).replace(/\n/g, '<br>')}</span>
+                </div>
+            `;
+        }).join('');
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+}
+
+    // ================= REALTIME CHAT =================
+
+const chatChannel = supabase.channel('global-chat-room')
+
+.on(
+    'broadcast',
+    { event: 'reaction_event' },
+    (payload) => {
         const chatBox = document.getElementById('chatBox');
 
-        if (error) {
-            console.error('Ошибка загрузки сообщений:', error.message);
-            chatBox.innerHTML = '<div class="empty-state">Не удалось загрузить сообщения.</div>';
-            return;
-        }
+        const note = document.createElement('div');
 
-        if (data) {
-            chatBox.innerHTML = data.reverse().map(m => {
-                const isMine = currentUser && m.user_id === currentUser.id;
-                const senderName = isMine ? 'Вы' : String(m.username || 'Пользователь').split(' ')[0];
-                return `
-                    <div class="chat-msg ${isMine ? 'my-message' : ''}">
-                        <b>${escapeHtml(senderName)}:</b>
-                        <span>${escapeHtml(m.text)}</span>
-                    </div>
-                `;
-            }).join('');
-            chatBox.scrollTop = chatBox.scrollHeight;
+        note.className = 'chat-msg';
+
+        note.innerHTML = `
+            <b>Реакция</b>
+            <div class="reaction-badge">
+                ${escapeHtml(payload.payload.user)} отправил: ${escapeHtml(payload.payload.emoji)}
+            </div>
+        `;
+
+        chatBox.appendChild(note);
+
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        setTimeout(() => {
+            note.remove();
+        }, 3000);
+    }
+)
+
+.on(
+    'broadcast',
+    { event: 'typing' },
+    (payload) => {
+
+        const bubble = document.getElementById('typingBubble');
+        const userLabel = document.getElementById('typingUser');
+
+        if (!bubble || !userLabel) return;
+
+        if (
+            payload.payload.isTyping &&
+            payload.payload.user !== getDisplayName().split(' ')[0]
+        ) {
+
+            userLabel.innerText =
+                `${payload.payload.user} печатает...`;
+
+            bubble.style.display = 'block';
+
+            clearTimeout(window.typingHideTimeout);
+
+            window.typingHideTimeout = setTimeout(() => {
+                bubble.style.display = 'none';
+            }, 2000);
+
+        } else {
+            bubble.style.display = 'none';
         }
     }
+)
 
-    // Находим поле ввода
+.subscribe((status) => {
+    console.log('Realtime status:', status);
+});
+window.sendReaction = (emoji) => {
+    if (!currentUser) return;
+
+    chatChannel.send({
+        type: 'broadcast',
+        event: 'reaction_event',
+        payload: {
+            user: getDisplayName().split(' ')[0],
+            emoji: emoji
+        }
+    });
+};
+
 const chatInput = document.getElementById('chatInput');
 
-// 1. Отслеживаем ввод (КТО ПЕЧАТАЕТ)
-chatInput.addEventListener('input', () => {
-    if (!currentUser) return;
-    const channel = supabase.channel('chat_room');
-    channel.send({
-        type: 'broadcast',
-        event: 'typing',
-        payload: { user: getDisplayName(), isTyping: true }
+if (chatInput) {
+    chatInput.addEventListener('input', () => {
+        if (!currentUser) return;
+
+        chatChannel.send({
+            type: 'broadcast',
+            event: 'typing',
+            payload: {
+                user: getDisplayName().split(' ')[0],
+                isTyping: true
+            }
+        });
+
+        clearTimeout(typingTimeout);
+
+        typingTimeout = setTimeout(() => {
+            chatChannel.send({
+                type: 'broadcast',
+                event: 'typing',
+                payload: {
+                    user: getDisplayName().split(' ')[0],
+                    isTyping: false
+                }
+            });
+        }, 1500);
     });
 
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => {
-        channel.send({
-            type: 'broadcast',
-            event: 'typing',
-            payload: { user: getDisplayName(), isTyping: false }
-        });
-    }, 2000);
-});
+    chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            window.sendMessage();
+        }
+    });
+}
 
-// 2. Отправка по Enter (твой старый код, оставляем его здесь)
-chatInput.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        window.sendMessage();
-        
-        // Сразу убираем статус печати после отправки
-        supabase.channel('chat_room').send({
-            type: 'broadcast',
-            event: 'typing',
-            payload: { user: getDisplayName(), isTyping: false }
-        });
-    }
-});
-
-    // Инициализация системы
+        // Инициализация системы
     checkUser();
 
     // Фоновое обновление данных
     setInterval(() => {
-        fetchGroup();мм
+        fetchGroup();
         if (currentUser) {
             fetchMessages();
             fetchRanking();
             fetchAchievements();
         }
-    }, 5000);
+    }, 15000);
 </script>
 </body>
 </html>
