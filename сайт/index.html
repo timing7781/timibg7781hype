@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система мониторинга учебной группы | v2.1</title>
+    
+    <!-- Подключаем CSS файл -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="card">
+        <h2>👤 Личный профиль</h2>
+        <div class="status-info-box">
+            <div id="authContent">Выполняется проверка авторизации...</div>
+        </div>
+
+        <div id="sessionUI" style="display:none;">
+            <div class="timer-box">
+                <div style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 5px;">Активность в текущей сессии:</div>
+                <div id="timerDisplay">00:00:00</div>
+                <button id="toggleSessionBtn" class="btn-session btn-start">▶ Начать период учебы</button>
+            </div>
+        </div>
+
+        <p style="font-size: 0.9rem; font-weight: 600; color: #94a3b8; margin-bottom: 8px;">Установить текущее занятие:</p>
+        <div class="status-grid" id="statusPicker">
+            <div class="status-option" onclick="prepStatus(this, '🟢 Онлайн')">🟢 Онлайн</div>
+            <div class="status-option" onclick="prepStatus(this, '☕ Отошёл')">☕ Отошёл</div>
+            <div class="status-option" onclick="prepStatus(this, '🔴 Занят')">🔴 Занят</div>
+            <div class="status-option" onclick="prepStatus(this, '🍜 Обед')">🍜 Обед</div>
+        </div>
+        <button class="btn-save" onclick="applyStatus()">Обновить мой статус</button>
+    </div>
+
+    <div class="card" id="monitorCard">
+        <h2>👥 Монитор активности группы</h2>
+        <div class="monitor-tabs" id="monitorTabs">
+            <button class="monitor-tab active" data-tab="participants" onclick="switchMonitorTab('participants')">Участники</button>
+            <button class="monitor-tab" data-tab="ranking" onclick="switchMonitorTab('ranking')">Рейтинг</button>
+            <button class="monitor-tab" data-tab="achievements" onclick="switchMonitorTab('achievements')">Достижения</button>
+        </div>
+
+        <div class="monitor-pane active" id="participantsPane">
+            <div id="monitorSummary" class="monitor-summary">
+                <div class="monitor-summary-card study"><b>0</b><span>учатся</span></div>
+                <div class="monitor-summary-card online"><b>0</b><span>онлайн</span></div>
+                <div class="monitor-summary-card offline"><b>0</b><span>офлайн</span></div>
+            </div>
+            <div id="groupList">Загрузка данных участников...</div>
+        </div>
+
+        <div class="monitor-pane" id="rankingPane">
+            <div id="rankList">Загрузка рейтинга...</div>
+        </div>
+
+        <div class="monitor-pane" id="achievementsPane">
+            <div class="ach-container" id="achList"></div>
+        </div>
+    </div>
+
+    <div class="card" id="chatSection" style="display:none;">
+        <h2>💬 Корпоративный чат</h2>
+
+        <div id="chatBox"></div>
+
+        <div id="typingBubble" class="typing-bubble" style="display:none; margin-top:10px;">
+            <div style="font-size: 0.7rem; color: #94a3b8; margin-bottom: 4px;" id="typingUser">Кто-то печатает</div>
+            <div class="typing-dots">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+
+        <div class="reaction-bar" style="display: flex; gap: 8px; margin-bottom: 10px; justify-content: center; margin-top: 12px;">
+            <button class="status-option" style="padding: 5px 12px;" onclick="sendReaction('👍')">👍</button>
+            <button class="status-option" style="padding: 5px 12px;" onclick="sendReaction('🔥')">🔥</button>
+            <button class="status-option" style="padding: 5px 12px;" onclick="sendReaction('❤️')">❤️</button>
+            <button class="status-option" style="padding: 5px 12px;" onclick="sendReaction('👏')">👏</button>
+        </div>
+
+        <div class="chat-input-container">
+            <input type="text" id="chatInput" placeholder="Введите сообщение...">
+            <button class="btn-send" onclick="sendMessage()">➡</button>
+        </div>
+    </div>
+
+    <!-- Подключаем JavaScript файл -->
+    <script type="module" src="app.js"></script>
+</body>
+</html>
